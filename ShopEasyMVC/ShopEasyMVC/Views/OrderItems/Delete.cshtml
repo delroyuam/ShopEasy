@@ -1,0 +1,31 @@
+@model ShopEasyMVC.Models.OrderItem
+
+@{
+    ViewData["Title"] = "Eliminar producto de orden";
+}
+
+<h1>Eliminar producto de orden</h1>
+
+<h3>¿Seguro que desea eliminar este producto de la orden?</h3>
+
+<hr />
+
+<dl class="row">
+    <dt class="col-sm-2">Orden</dt>
+    <dd class="col-sm-10">@Model.Order.OrderNumber</dd>
+
+    <dt class="col-sm-2">Producto</dt>
+    <dd class="col-sm-10">@Model.Product.Name</dd>
+
+    <dt class="col-sm-2">Cantidad</dt>
+    <dd class="col-sm-10">@Html.DisplayFor(model => model.Quantity)</dd>
+
+    <dt class="col-sm-2">Precio unitario</dt>
+    <dd class="col-sm-10">@Model.UnitPrice.ToString("C")</dd>
+</dl>
+
+<form asp-action="Delete" method="post">
+    <input type="hidden" asp-for="Id" />
+    <input type="submit" value="Eliminar" class="btn btn-danger" />
+    <a asp-action="Index" class="btn btn-secondary">Volver</a>
+</form>

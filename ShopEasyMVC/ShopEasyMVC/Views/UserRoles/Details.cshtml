@@ -1,0 +1,23 @@
+@model ShopEasyMVC.Models.UserRole
+
+@{
+    ViewData["Title"] = "Detalles del rol";
+}
+
+<h1>Detalles del rol</h1>
+
+<div>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">Rol</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.Name)</dd>
+
+        <dt class="col-sm-2">Usuario</dt>
+        <dd class="col-sm-10">@Model.User.FullName (@Model.User.Email)</dd>
+    </dl>
+</div>
+
+<div>
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Editar</a>
+    <a asp-action="Index" class="btn btn-secondary">Volver</a>
+</div>

@@ -1,0 +1,52 @@
+@model ShopEasyMVC.Models.Order
+
+@{
+    ViewData["Title"] = "Detalles de orden";
+}
+
+<h1>Detalles de orden</h1>
+
+<hr />
+
+<dl class="row">
+    <dt class="col-sm-2">Número</dt>
+    <dd class="col-sm-10">@Html.DisplayFor(model => model.OrderNumber)</dd>
+
+    <dt class="col-sm-2">Total</dt>
+    <dd class="col-sm-10">@Model.TotalAmount.ToString("C")</dd>
+
+    <dt class="col-sm-2">Estado</dt>
+    <dd class="col-sm-10">@Html.DisplayFor(model => model.Status)</dd>
+
+    <dt class="col-sm-2">Usuario</dt>
+    <dd class="col-sm-10">@Model.User.FullName (@Model.User.Email)</dd>
+
+    <dt class="col-sm-2">Fecha</dt>
+    <dd class="col-sm-10">@Html.DisplayFor(model => model.CreatedAt)</dd>
+</dl>
+
+<h4>Productos en la orden</h4>
+
+<table class="table table-sm table-bordered">
+    <thead>
+        <tr>
+            <th>Producto</th>
+            <th>Cantidad</th>
+            <th>Precio unitario</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.OrderItems)
+        {
+            <tr>
+                <td>@item.Product.Name</td>
+                <td>@item.Quantity</td>
+                <td>@item.UnitPrice.ToString("C")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Editar</a>
+<a asp-controller="OrderItems" asp-action="Create" class="btn btn-primary">Agregar producto</a>
+<a asp-action="Index" class="btn btn-secondary">Volver</a>

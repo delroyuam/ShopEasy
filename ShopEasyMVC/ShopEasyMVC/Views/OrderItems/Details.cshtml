@@ -1,0 +1,29 @@
+@model ShopEasyMVC.Models.OrderItem
+
+@{
+    ViewData["Title"] = "Detalles de producto en orden";
+}
+
+<h1>Detalles de producto en orden</h1>
+
+<hr />
+
+<dl class="row">
+    <dt class="col-sm-2">Orden</dt>
+    <dd class="col-sm-10">@Model.Order.OrderNumber</dd>
+
+    <dt class="col-sm-2">Producto</dt>
+    <dd class="col-sm-10">@Model.Product.Name</dd>
+
+    <dt class="col-sm-2">Cantidad</dt>
+    <dd class="col-sm-10">@Html.DisplayFor(model => model.Quantity)</dd>
+
+    <dt class="col-sm-2">Precio unitario</dt>
+    <dd class="col-sm-10">@Model.UnitPrice.ToString("C")</dd>
+
+    <dt class="col-sm-2">Subtotal</dt>
+    <dd class="col-sm-10">@((Model.Quantity * Model.UnitPrice).ToString("C"))</dd>
+</dl>
+
+<a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Editar</a>
+<a asp-action="Index" class="btn btn-secondary">Volver</a>
