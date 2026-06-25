@@ -23,7 +23,8 @@
 
             <div class="form-group mb-3">
                 <label asp-for="ProductId" class="control-label">Producto</label>
-                <select asp-for="ProductId" class="form-control" asp-items="ViewBag.ProductId">
+                <select asp-for="ProductId" class="form-control" asp-items="ViewBag.ProductId"
+                        data-product-prices="@ViewData["ProductPrices"]">
                     <option value="">Seleccione un producto</option>
                 </select>
                 <span asp-validation-for="ProductId" class="text-danger"></span>
@@ -31,7 +32,7 @@
 
             <div class="form-group mb-3">
                 <label asp-for="Quantity" class="control-label">Cantidad</label>
-                <input asp-for="Quantity" class="form-control" />
+                <input asp-for="Quantity" type="number" min="1" class="form-control" />
                 <span asp-validation-for="Quantity" class="text-danger"></span>
             </div>
 
@@ -51,4 +52,5 @@
 
 @section Scripts {
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    <script src="~/js/order-item-price.js" asp-append-version="true"></script>
 }

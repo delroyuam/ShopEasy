@@ -60,7 +60,11 @@
                 <td>
                     @if (!string.IsNullOrWhiteSpace(item.ImageUrl))
                     {
-                        <img src="@item.ImageUrl" alt="@item.Name" style="width:48px;height:48px;object-fit:cover;" class="rounded" />
+                        <img src="@item.ImageUrl" alt="@item.Name"
+                             style="width:48px;height:48px;object-fit:cover;cursor:pointer;"
+                             class="rounded product-thumb"
+                             data-bs-toggle="modal" data-bs-target="#imageModal"
+                             data-img-src="@item.ImageUrl" data-img-alt="@item.Name" />
                     }
                     else
                     {
@@ -68,7 +72,7 @@
                     }
                 </td>
                 <td>@item.Name</td>
-                <td>@item.CurrentPrice.ToString("C")</td>
+                <td>@item.CurrentPrice.ToColones()</td>
                 <td>@item.Stock</td>
                 <td>
                     @if (item.Stock == 0)
@@ -99,4 +103,18 @@
 @if (!Model.Any())
 {
     <div class="alert alert-info">No hay productos que coincidan con los filtros seleccionados.</div>
+}
+
+<div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-body text-center p-0">
+                <img id="imageModalImg" src="" alt="" class="img-fluid rounded" />
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/image-modal.js" asp-append-version="true"></script>
 }

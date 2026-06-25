@@ -15,7 +15,8 @@
 
             <div class="form-group mb-3">
                 <label asp-for="OrderNumber" class="control-label">Número de orden</label>
-                <input asp-for="OrderNumber" class="form-control" />
+                <input asp-for="OrderNumber" class="form-control" readonly />
+                <small class="form-text text-muted">Se genera automáticamente (ORD-AÑO-001).</small>
                 <span asp-validation-for="OrderNumber" class="text-danger"></span>
             </div>
 
@@ -33,7 +34,7 @@
 
             <div class="form-group mb-3">
                 <label asp-for="CreatedAt" class="control-label">Fecha</label>
-                <input asp-for="CreatedAt" class="form-control" />
+                <input asp-for="CreatedAt" type="date" asp-format="{0:yyyy-MM-dd}" class="form-control" />
                 <span asp-validation-for="CreatedAt" class="text-danger"></span>
             </div>
 

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -48,7 +49,7 @@ namespace ShopEasyMVC.Controllers
         public async Task<IActionResult> Create()
         {
             await LoadSelectListsAsync();
-            return View();
+            return View(new OrderItem { Quantity = 1 });
         }
 
         [HttpPost]
@@ -181,11 +182,15 @@ namespace ShopEasyMVC.Controllers
 
         private async Task ValidateOrderItemAsync(OrderItem orderItem, int? orderItemIdToExclude = null)
         {
-            var orderExists = await _context.Orders.AnyAsync(o => o.Id == orderItem.OrderId);
+            var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == orderItem.OrderId);
 
-            if (!orderExists)
+            if (order is null)
             {
                 ModelState.AddModelError("OrderId", "Debe seleccionar una orden válida.");
+            }
+            else if (order.Status != OrderStatus.Pending)
+            {
+                ModelState.AddModelError("OrderId", "Solo se pueden agregar productos a órdenes pendientes.");
             }
 
             var productExists = await _context.Products.AnyAsync(p => p.Id == orderItem.ProductId);
@@ -208,7 +213,9 @@ namespace ShopEasyMVC.Controllers
 
         private async Task LoadSelectListsAsync(int? selectedOrderId = null, int? selectedProductId = null)
         {
+            // Solo se pueden agregar productos a órdenes pendientes.
             var orders = await _context.Orders
+                .Where(o => o.Status == OrderStatus.Pending)
                 .OrderBy(o => o.OrderNumber)
                 .ToListAsync();
 
@@ -219,6 +226,10 @@ namespace ShopEasyMVC.Controllers
 
             ViewData["OrderId"] = new SelectList(orders, "Id", "OrderNumber", selectedOrderId);
             ViewData["ProductId"] = new SelectList(products, "Id", "Name", selectedProductId);
+
+            // Mapa producto -> precio actual para autocompletar el precio unitario en el formulario.
+            ViewData["ProductPrices"] = JsonSerializer.Serialize(
+                products.ToDictionary(product => product.Id, product => product.CurrentPrice));
         }
     }
 }

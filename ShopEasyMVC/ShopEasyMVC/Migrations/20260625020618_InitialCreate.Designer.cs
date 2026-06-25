@@ -12,8 +12,8 @@ using ShopEasyMVC.Data;
 namespace ShopEasyMVC.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260624012948_init")]
-    partial class init
+    [Migration("20260625020618_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -43,6 +43,9 @@ namespace ShopEasyMVC.Migrations
                         .HasColumnType("nvarchar(256)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
 
                     b.ToTable("Categories");
                 });
@@ -74,6 +77,9 @@ namespace ShopEasyMVC.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("OrderNumber")
+                        .IsUnique();
+
                     b.HasIndex("UserId");
 
                     b.ToTable("Orders");
@@ -101,9 +107,10 @@ namespace ShopEasyMVC.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OrderId");
-
                     b.HasIndex("ProductId");
+
+                    b.HasIndex("OrderId", "ProductId")
+                        .IsUnique();
 
                     b.ToTable("OrderItems");
                 });
@@ -147,6 +154,9 @@ namespace ShopEasyMVC.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
 
                     b.ToTable("Products");
                 });
@@ -195,12 +205,18 @@ namespace ShopEasyMVC.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
-                    b.Property<int>("UserId")
+                    b.Property<int?>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasFilter("[UserId] IS NULL");
+
+                    b.HasIndex("UserId", "Name")
+                        .IsUnique()
+                        .HasFilter("[UserId] IS NOT NULL");
 
                     b.ToTable("UserRoles");
                 });
@@ -251,8 +267,7 @@ namespace ShopEasyMVC.Migrations
                     b.HasOne("ShopEasyMVC.Models.User", "User")
                         .WithMany("UserRoles")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("User");
                 });

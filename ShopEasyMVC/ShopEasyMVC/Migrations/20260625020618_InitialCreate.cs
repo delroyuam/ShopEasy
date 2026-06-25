@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ShopEasyMVC.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -96,7 +96,7 @@ namespace ShopEasyMVC.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
-                    UserId = table.Column<int>(type: "int", nullable: false)
+                    UserId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -138,14 +138,27 @@ namespace ShopEasyMVC.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_OrderItems_OrderId",
+                name: "IX_Categories_Name",
+                table: "Categories",
+                column: "Name",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrderItems_OrderId_ProductId",
                 table: "OrderItems",
-                column: "OrderId");
+                columns: new[] { "OrderId", "ProductId" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_OrderItems_ProductId",
                 table: "OrderItems",
                 column: "ProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_OrderNumber",
+                table: "Orders",
+                column: "OrderNumber",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Orders_UserId",
@@ -158,9 +171,24 @@ namespace ShopEasyMVC.Migrations
                 column: "CategoryId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserRoles_UserId",
+                name: "IX_Products_Name",
+                table: "Products",
+                column: "Name",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserRoles_Name",
                 table: "UserRoles",
-                column: "UserId");
+                column: "Name",
+                unique: true,
+                filter: "[UserId] IS NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserRoles_UserId_Name",
+                table: "UserRoles",
+                columns: new[] { "UserId", "Name" },
+                unique: true,
+                filter: "[UserId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_Email",

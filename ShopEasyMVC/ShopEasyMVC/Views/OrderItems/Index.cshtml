@@ -27,7 +27,7 @@
                 <td>@item.Order.OrderNumber</td>
                 <td>@item.Product.Name</td>
                 <td>@Html.DisplayFor(modelItem => item.Quantity)</td>
-                <td>@item.UnitPrice.ToString("C")</td>
+                <td>@item.UnitPrice.ToColones()</td>
                 <td>
                     <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm">Editar</a>
                     <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm">Detalles</a>

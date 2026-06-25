@@ -41,6 +41,9 @@ namespace ShopEasyMVC.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Name")
+                        .IsUnique();
+
                     b.ToTable("Categories");
                 });
 
@@ -71,6 +74,9 @@ namespace ShopEasyMVC.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("OrderNumber")
+                        .IsUnique();
+
                     b.HasIndex("UserId");
 
                     b.ToTable("Orders");
@@ -98,9 +104,10 @@ namespace ShopEasyMVC.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OrderId");
-
                     b.HasIndex("ProductId");
+
+                    b.HasIndex("OrderId", "ProductId")
+                        .IsUnique();
 
                     b.ToTable("OrderItems");
                 });
@@ -144,6 +151,9 @@ namespace ShopEasyMVC.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
 
                     b.ToTable("Products");
                 });

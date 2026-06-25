@@ -17,7 +17,7 @@
     <dd class="col-sm-10">@Html.DisplayFor(model => model.Name)</dd>
 
     <dt class="col-sm-2">Precio</dt>
-    <dd class="col-sm-10">@Model.CurrentPrice.ToString("C")</dd>
+    <dd class="col-sm-10">@Model.CurrentPrice.ToColones()</dd>
 
     <dt class="col-sm-2">Categoría</dt>
     <dd class="col-sm-10">@Model.Category.Name</dd>

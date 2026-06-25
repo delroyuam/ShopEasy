@@ -88,21 +88,26 @@ namespace ShopEasyMVC.Controllers
             await LoadUsersSelectListAsync();
             LoadStatusSelectList();
 
+            var now = DateTime.UtcNow;
+
             return View(new Order
             {
-                CreatedAt = DateTime.UtcNow,
-                Status = OrderStatus.Pending
+                CreatedAt = now,
+                Status = OrderStatus.Pending,
+                OrderNumber = await GenerateOrderNumberAsync(now.Year)
             });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("OrderNumber,TotalAmount,Status,CreatedAt,UserId")] Order order)
+        public async Task<IActionResult> Create([Bind("TotalAmount,Status,CreatedAt,UserId")] Order order)
         {
-            order.OrderNumber = NormalizeText(order.OrderNumber);
+            // El número de orden se genera automáticamente (ORD-AÑO-001, 002, ...).
+            order.OrderNumber = await GenerateOrderNumberAsync(order.CreatedAt.Year);
 
             ModelState.Remove("User");
             ModelState.Remove("OrderItems");
+            ModelState.Remove("OrderNumber");
 
             await ValidateOrderAsync(order);
 
@@ -229,6 +234,29 @@ namespace ShopEasyMVC.Controllers
         private bool OrderExists(int id)
         {
             return _context.Orders.Any(o => o.Id == id);
+        }
+
+        // Genera el siguiente número de orden correlativo para el año: ORD-{año}-001, 002, ...
+        private async Task<string> GenerateOrderNumberAsync(int year)
+        {
+            var prefix = $"ORD-{year}-";
+
+            var existingNumbers = await _context.Orders
+                .Where(o => o.OrderNumber.StartsWith(prefix))
+                .Select(o => o.OrderNumber)
+                .ToListAsync();
+
+            var maxSequence = 0;
+
+            foreach (var number in existingNumbers)
+            {
+                if (int.TryParse(number.AsSpan(prefix.Length), out var sequence) && sequence > maxSequence)
+                {
+                    maxSequence = sequence;
+                }
+            }
+
+            return $"{prefix}{maxSequence + 1:D3}";
         }
 
         private async Task ValidateOrderAsync(Order order, int? orderIdToExclude = null)

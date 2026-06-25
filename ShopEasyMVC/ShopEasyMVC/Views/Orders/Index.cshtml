@@ -50,7 +50,7 @@
         {
             <tr>
                 <td>@item.OrderNumber</td>
-                <td>@item.TotalAmount.ToString("C")</td>
+                <td>@item.TotalAmount.ToColones()</td>
                 <td><span class="badge @item.Status.ToBadgeClass()">@item.Status.GetDisplayName()</span></td>
                 <td>@item.User.FullName</td>
                 <td>@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
