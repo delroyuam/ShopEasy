@@ -10,7 +10,6 @@ namespace ShopEasyMVC.Controllers
     {
         private readonly AppDbContext _context;
 
-        // Umbral para marcar un producto como "stock bajo" en el panel de inventario.
         private const int LowStockThreshold = 5;
 
         public ProductsController(AppDbContext context)
@@ -18,7 +17,6 @@ namespace ShopEasyMVC.Controllers
             _context = context;
         }
 
-        // RF-008 - Gestión de Inventario (Admin): listado de productos con búsqueda y filtros.
         public async Task<IActionResult> Index(string? search, int? categoryId, string? stock)
         {
             var productsQuery = _context.Products

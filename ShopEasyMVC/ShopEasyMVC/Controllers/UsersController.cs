@@ -17,7 +17,6 @@ namespace ShopEasyMVC.Controllers
             _context = context;
         }
 
-        // GET: Users
         public async Task<IActionResult> Index()
         {
             var users = await _context.Users
@@ -27,7 +26,6 @@ namespace ShopEasyMVC.Controllers
             return View(users);
         }
 
-        // GET: Users/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id is null)
@@ -48,14 +46,12 @@ namespace ShopEasyMVC.Controllers
             return View(user);
         }
 
-        // GET: Users/Create
         public async Task<IActionResult> Create()
         {
             await LoadRolesSelectListAsync();
             return View();
         }
 
-        // POST: Users/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("FullName,Email,PasswordHash")] User user, string roleName)
@@ -93,7 +89,6 @@ namespace ShopEasyMVC.Controllers
             return View(user);
         }
 
-        // GET: Users/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id is null)
@@ -111,7 +106,6 @@ namespace ShopEasyMVC.Controllers
             return View(user);
         }
 
-        // POST: Users/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, User user)
@@ -161,7 +155,6 @@ namespace ShopEasyMVC.Controllers
             return View(user);
         }
 
-        // GET: Users/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id is null)
@@ -180,7 +173,6 @@ namespace ShopEasyMVC.Controllers
             return View(user);
         }
 
-        // POST: Users/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

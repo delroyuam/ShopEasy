@@ -15,7 +15,6 @@ namespace ShopEasyMVC.Controllers
             _context = context;
         }
 
-        // GET: UserRoles
         public async Task<IActionResult> Index()
         {
             var userRoles = await _context.UserRoles
@@ -26,7 +25,6 @@ namespace ShopEasyMVC.Controllers
             return View(userRoles);
         }
 
-        // GET: UserRoles/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id is null)
@@ -45,13 +43,11 @@ namespace ShopEasyMVC.Controllers
             return View(userRole);
         }
 
-        // GET: UserRoles/Create
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: UserRoles/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Name")] UserRole userRole)
@@ -74,7 +70,6 @@ namespace ShopEasyMVC.Controllers
             return View(userRole);
         }
 
-        // GET: UserRoles/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id is null)
@@ -92,7 +87,6 @@ namespace ShopEasyMVC.Controllers
             return View(userRole);
         }
 
-        // POST: UserRoles/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name")] UserRole userRole)
@@ -142,7 +136,6 @@ namespace ShopEasyMVC.Controllers
             return View(userRole);
         }
 
-        // GET: UserRoles/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id is null)
@@ -161,7 +154,6 @@ namespace ShopEasyMVC.Controllers
             return View(userRole);
         }
 
-        // POST: UserRoles/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

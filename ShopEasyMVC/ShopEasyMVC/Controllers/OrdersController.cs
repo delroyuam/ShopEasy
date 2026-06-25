@@ -16,7 +16,6 @@ namespace ShopEasyMVC.Controllers
             _context = context;
         }
 
-        // RF-009 - Gestión de Pedidos (Admin): lista todos los pedidos con filtro opcional por estado.
         public async Task<IActionResult> Index(OrderStatus? status)
         {
             var ordersQuery = _context.Orders
@@ -37,7 +36,6 @@ namespace ShopEasyMVC.Controllers
             return View(orders);
         }
 
-        // RF-009 - Cambio rápido de estado del pedido desde la lista (sin abrir el formulario completo).
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateStatus(int id, OrderStatus status, OrderStatus? filter)
@@ -270,7 +268,6 @@ namespace ShopEasyMVC.Controllers
             ViewData["Status"] = BuildStatusItems(selectedStatus);
         }
 
-        // Lista de estados (en español) usada por el filtro y el cambio rápido en el Index.
         private void LoadStatusFilterList(OrderStatus? selectedStatus = null)
         {
             ViewData["StatusFilter"] = BuildStatusItems(selectedStatus);
