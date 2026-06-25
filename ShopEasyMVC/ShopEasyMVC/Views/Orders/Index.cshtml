@@ -1,16 +1,39 @@
+@using ShopEasyMVC.Helpers
 @model IEnumerable<ShopEasyMVC.Models.Order>
 
 @{
-    ViewData["Title"] = "Órdenes";
+    ViewData["Title"] = "Gestión de Pedidos";
+    var statusFilter = ViewData["StatusFilter"] as IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>;
+    var currentFilter = statusFilter?.FirstOrDefault(s => s.Selected)?.Value;
 }
 
-<h1>Órdenes</h1>
+<h1>Gestión de Pedidos</h1>
+<p class="text-muted">Panel de administración de pedidos (RF-009).</p>
 
-<p>
+@if (TempData["StatusMessage"] is string statusMessage)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @statusMessage
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+}
+
+<div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
+    <form asp-action="Index" method="get" class="d-flex align-items-end gap-2">
+        <div>
+            <label for="status" class="form-label mb-1">Filtrar por estado</label>
+            <select name="status" id="status" class="form-select" asp-items="statusFilter">
+                <option value="">Todos los estados</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-outline-primary">Filtrar</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Limpiar</a>
+    </form>
+
     <a asp-action="Create" class="btn btn-primary">Crear orden</a>
-</p>
+</div>
 
-<table class="table table-bordered table-striped">
+<table class="table table-bordered table-striped align-middle">
     <thead>
         <tr>
             <th>Número</th>
@@ -18,6 +41,7 @@
             <th>Estado</th>
             <th>Usuario</th>
             <th>Fecha</th>
+            <th>Cambiar estado</th>
             <th></th>
         </tr>
     </thead>
@@ -25,17 +49,42 @@
         @foreach (var item in Model)
         {
             <tr>
-                <td>@Html.DisplayFor(modelItem => item.OrderNumber)</td>
+                <td>@item.OrderNumber</td>
                 <td>@item.TotalAmount.ToString("C")</td>
-                <td>@Html.DisplayFor(modelItem => item.Status)</td>
+                <td><span class="badge @item.Status.ToBadgeClass()">@item.Status.GetDisplayName()</span></td>
                 <td>@item.User.FullName</td>
-                <td>@Html.DisplayFor(modelItem => item.CreatedAt)</td>
+                <td>@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
                 <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm">Editar</a>
+                    <form asp-action="UpdateStatus" method="post" class="d-flex gap-1">
+                        <input type="hidden" name="id" value="@item.Id" />
+                        <input type="hidden" name="filter" value="@currentFilter" />
+                        <select name="status" class="form-select form-select-sm">
+                            @foreach (var option in Enum.GetValues<ShopEasyMVC.Models.OrderStatus>())
+                            {
+                                if (option == item.Status)
+                                {
+                                    <option value="@option" selected>@option.GetDisplayName()</option>
+                                }
+                                else
+                                {
+                                    <option value="@option">@option.GetDisplayName()</option>
+                                }
+                            }
+                        </select>
+                        <button type="submit" class="btn btn-success btn-sm">Guardar</button>
+                    </form>
+                </td>
+                <td>
                     <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm">Detalles</a>
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm">Editar</a>
                     <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm">Eliminar</a>
                 </td>
             </tr>
         }
     </tbody>
 </table>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">No hay pedidos que coincidan con el filtro seleccionado.</div>
+}

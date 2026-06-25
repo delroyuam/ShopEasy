@@ -1,3 +1,4 @@
+@using ShopEasyMVC.Helpers
 @model ShopEasyMVC.Models.Order
 
 @{
@@ -16,7 +17,7 @@
     <dd class="col-sm-10">@Model.TotalAmount.ToString("C")</dd>
 
     <dt class="col-sm-2">Estado</dt>
-    <dd class="col-sm-10">@Html.DisplayFor(model => model.Status)</dd>
+    <dd class="col-sm-10"><span class="badge @Model.Status.ToBadgeClass()">@Model.Status.GetDisplayName()</span></dd>
 
     <dt class="col-sm-2">Usuario</dt>
     <dd class="col-sm-10">@Model.User.FullName (@Model.User.Email)</dd>

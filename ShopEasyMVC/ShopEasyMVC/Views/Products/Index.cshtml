@@ -1,21 +1,53 @@
 @model IEnumerable<ShopEasyMVC.Models.Product>
 
 @{
-    ViewData["Title"] = "Productos";
+    ViewData["Title"] = "Gestión de Inventario";
+    var search = ViewData["Search"] as string;
+    var stockFilter = ViewData["StockFilter"] as string;
+    var lowStockThreshold = (int)(ViewData["LowStockThreshold"] ?? 5);
 }
 
-<h1>Productos</h1>
+<h1>Gestión de Inventario</h1>
+<p class="text-muted">Panel de administración de productos (RF-008).</p>
+
+<form asp-action="Index" method="get" class="row g-2 align-items-end mb-3">
+    <div class="col-md-4">
+        <label for="search" class="form-label mb-1">Buscar por nombre</label>
+        <input type="text" name="search" id="search" value="@search" class="form-control" placeholder="Nombre del producto" />
+    </div>
+    <div class="col-md-3">
+        <label for="categoryId" class="form-label mb-1">Categoría</label>
+        <select name="categoryId" id="categoryId" class="form-select" asp-items="ViewBag.CategoryId">
+            <option value="">Todas</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label for="stock" class="form-label mb-1">Disponibilidad</label>
+        <select name="stock" id="stock" class="form-select">
+            <option value="">Todas</option>
+            <option value="in" selected="@(stockFilter == "in")">En stock</option>
+            <option value="low" selected="@(stockFilter == "low")">Stock bajo</option>
+            <option value="out" selected="@(stockFilter == "out")">Agotado</option>
+        </select>
+    </div>
+    <div class="col-md-2 d-flex gap-2">
+        <button type="submit" class="btn btn-outline-primary">Filtrar</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Limpiar</a>
+    </div>
+</form>
 
 <p>
     <a asp-action="Create" class="btn btn-primary">Crear producto</a>
 </p>
 
-<table class="table table-bordered table-striped">
+<table class="table table-bordered table-striped align-middle">
     <thead>
         <tr>
+            <th>Imagen</th>
             <th>Nombre</th>
             <th>Precio</th>
             <th>Stock</th>
+            <th>Disponibilidad</th>
             <th>Activo</th>
             <th>Categoría</th>
             <th></th>
@@ -25,9 +57,33 @@
         @foreach (var item in Model)
         {
             <tr>
-                <td>@Html.DisplayFor(modelItem => item.Name)</td>
+                <td>
+                    @if (!string.IsNullOrWhiteSpace(item.ImageUrl))
+                    {
+                        <img src="@item.ImageUrl" alt="@item.Name" style="width:48px;height:48px;object-fit:cover;" class="rounded" />
+                    }
+                    else
+                    {
+                        <span class="text-muted">—</span>
+                    }
+                </td>
+                <td>@item.Name</td>
                 <td>@item.CurrentPrice.ToString("C")</td>
-                <td>@Html.DisplayFor(modelItem => item.Stock)</td>
+                <td>@item.Stock</td>
+                <td>
+                    @if (item.Stock == 0)
+                    {
+                        <span class="badge bg-danger">Agotado</span>
+                    }
+                    else if (item.Stock <= lowStockThreshold)
+                    {
+                        <span class="badge bg-warning text-dark">Stock bajo</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-success">En stock</span>
+                    }
+                </td>
                 <td>@(item.IsActive ? "Sí" : "No")</td>
                 <td>@item.Category.Name</td>
                 <td>
@@ -39,3 +95,8 @@
         }
     </tbody>
 </table>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">No hay productos que coincidan con los filtros seleccionados.</div>
+}

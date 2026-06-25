@@ -10,16 +10,48 @@ namespace ShopEasyMVC.Controllers
     {
         private readonly AppDbContext _context;
 
+        // Umbral para marcar un producto como "stock bajo" en el panel de inventario.
+        private const int LowStockThreshold = 5;
+
         public ProductsController(AppDbContext context)
         {
             _context = context;
         }
 
-        public async Task<IActionResult> Index()
+        // RF-008 - Gestión de Inventario (Admin): listado de productos con búsqueda y filtros.
+        public async Task<IActionResult> Index(string? search, int? categoryId, string? stock)
         {
-            var products = await _context.Products
+            var productsQuery = _context.Products
                 .Include(p => p.Category)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim();
+                productsQuery = productsQuery.Where(p => p.Name.Contains(term));
+            }
+
+            if (categoryId.HasValue)
+            {
+                productsQuery = productsQuery.Where(p => p.CategoryId == categoryId.Value);
+            }
+
+            productsQuery = stock switch
+            {
+                "out" => productsQuery.Where(p => p.Stock == 0),
+                "low" => productsQuery.Where(p => p.Stock > 0 && p.Stock <= LowStockThreshold),
+                "in" => productsQuery.Where(p => p.Stock > LowStockThreshold),
+                _ => productsQuery
+            };
+
+            var products = await productsQuery
+                .OrderBy(p => p.Name)
                 .ToListAsync();
+
+            await LoadCategoriesSelectListAsync(categoryId);
+            ViewData["Search"] = search;
+            ViewData["StockFilter"] = stock;
+            ViewData["LowStockThreshold"] = LowStockThreshold;
 
             return View(products);
         }
