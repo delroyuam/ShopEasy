@@ -225,26 +225,23 @@ namespace ShopEasyMVC.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var order = await _context.Orders
+                .Include(o => o.User)
                 .Include(o => o.OrderItems)
-                    .ThenInclude(item => item.Product)
                 .FirstOrDefaultAsync(o => o.Id == id);
 
-            if (order is not null)
+            if (order is null)
             {
-                if (order.Status != OrderStatus.Cancelled)
-                {
-                    foreach (var item in order.OrderItems)
-                    {
-                        if (item.Product is not null)
-                        {
-                            item.Product.Stock += item.Quantity;
-                        }
-                    }
-                }
-
-                _context.Orders.Remove(order);
-                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
             }
+
+            if (order.Status != OrderStatus.Cancelled)
+            {
+                ModelState.AddModelError(string.Empty, "Solo se pueden eliminar órdenes canceladas.");
+                return View("Delete", order);
+            }
+
+            _context.Orders.Remove(order);
+            await _context.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
         }

@@ -6,13 +6,22 @@
 
 <h1>Eliminar orden</h1>
 
+@{
+    var puedeEliminar = Model.Status == ShopEasyMVC.Models.OrderStatus.Cancelled;
+}
+
 <h3>¿Seguro que desea eliminar esta orden?</h3>
 
 <hr />
 
+<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
 <dl class="row">
     <dt class="col-sm-2">Número</dt>
     <dd class="col-sm-10">@Html.DisplayFor(model => model.OrderNumber)</dd>
+
+    <dt class="col-sm-2">Estado</dt>
+    <dd class="col-sm-10">@Model.Status.GetDisplayName()</dd>
 
     <dt class="col-sm-2">Total</dt>
     <dd class="col-sm-10">@Model.TotalAmount.ToColones()</dd>
@@ -24,8 +33,16 @@
     <dd class="col-sm-10">@Model.OrderItems.Count</dd>
 </dl>
 
-<form asp-action="Delete" method="post">
-    <input type="hidden" asp-for="Id" />
-    <input type="submit" value="Eliminar" class="btn btn-danger" />
+@if (puedeEliminar)
+{
+    <form asp-action="Delete" method="post">
+        <input type="hidden" asp-for="Id" />
+        <input type="submit" value="Eliminar" class="btn btn-danger" />
+        <a asp-action="Index" class="btn btn-secondary">Volver</a>
+    </form>
+}
+else
+{
+    <div class="alert alert-warning">Solo se pueden eliminar órdenes canceladas. Cancele la orden antes de eliminarla.</div>
     <a asp-action="Index" class="btn btn-secondary">Volver</a>
-</form>
+}
