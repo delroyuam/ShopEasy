@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ShopEasyMVC.Data;
 using ShopEasyMVC.Models;
+using System.Text.RegularExpressions;
 
 namespace ShopEasyMVC.Controllers
 {
@@ -19,7 +19,8 @@ namespace ShopEasyMVC.Controllers
         public async Task<IActionResult> Index()
         {
             var userRoles = await _context.UserRoles
-                .Include(userRole => userRole.User)
+                .Where(userRole => userRole.UserId == null)
+                .OrderBy(userRole => userRole.Name)
                 .ToListAsync();
 
             return View(userRoles);
@@ -34,8 +35,7 @@ namespace ShopEasyMVC.Controllers
             }
 
             var userRole = await _context.UserRoles
-                .Include(role => role.User)
-                .FirstOrDefaultAsync(role => role.Id == id);
+                .FirstOrDefaultAsync(role => role.Id == id && role.UserId == null);
 
             if (userRole is null)
             {
@@ -46,20 +46,20 @@ namespace ShopEasyMVC.Controllers
         }
 
         // GET: UserRoles/Create
-        public async Task<IActionResult> Create()
+        public IActionResult Create()
         {
-            await LoadUsersSelectListAsync();
             return View();
         }
 
         // POST: UserRoles/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name,UserId")] UserRole userRole)
+        public async Task<IActionResult> Create([Bind("Name")] UserRole userRole)
         {
             userRole.Name = NormalizeRoleName(userRole.Name);
 
             ModelState.Remove("User");
+            ModelState.Remove("UserId");
 
             await ValidateUserRoleAsync(userRole);
 
@@ -71,7 +71,6 @@ namespace ShopEasyMVC.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            await LoadUsersSelectListAsync(userRole.UserId);
             return View(userRole);
         }
 
@@ -85,19 +84,18 @@ namespace ShopEasyMVC.Controllers
 
             var userRole = await _context.UserRoles.FindAsync(id);
 
-            if (userRole is null)
+            if (userRole is null || userRole.UserId.HasValue)
             {
                 return NotFound();
             }
 
-            await LoadUsersSelectListAsync(userRole.UserId);
             return View(userRole);
         }
 
         // POST: UserRoles/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,UserId")] UserRole userRole)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name")] UserRole userRole)
         {
             if (id != userRole.Id)
             {
@@ -105,8 +103,10 @@ namespace ShopEasyMVC.Controllers
             }
 
             userRole.Name = NormalizeRoleName(userRole.Name);
+            userRole.UserId = null;
 
             ModelState.Remove("User");
+            ModelState.Remove("UserId");
 
             await ValidateUserRoleAsync(userRole, userRole.Id);
 
@@ -139,7 +139,6 @@ namespace ShopEasyMVC.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            await LoadUsersSelectListAsync(userRole.UserId);
             return View(userRole);
         }
 
@@ -152,8 +151,7 @@ namespace ShopEasyMVC.Controllers
             }
 
             var userRole = await _context.UserRoles
-                .Include(role => role.User)
-                .FirstOrDefaultAsync(role => role.Id == id);
+                .FirstOrDefaultAsync(role => role.Id == id && role.UserId == null);
 
             if (userRole is null)
             {
@@ -170,7 +168,7 @@ namespace ShopEasyMVC.Controllers
         {
             var userRole = await _context.UserRoles.FindAsync(id);
 
-            if (userRole is not null)
+            if (userRole is not null && userRole.UserId == null)
             {
                 _context.UserRoles.Remove(userRole);
                 await _context.SaveChangesAsync();
@@ -186,42 +184,49 @@ namespace ShopEasyMVC.Controllers
 
         private async Task ValidateUserRoleAsync(UserRole userRole, int? userRoleIdToExclude = null)
         {
-            var userExists = await _context.Users.AnyAsync(user => user.Id == userRole.UserId);
-
-            if (!userExists)
+            if (!IsValidRoleName(userRole.Name))
             {
-                ModelState.AddModelError("UserId", "Debe seleccionar un usuario válido.");
+                ModelState.AddModelError("Name", "El rol solo puede contener letras y espacios.");
                 return;
             }
 
-            var duplicatedRole = await _context.UserRoles.AnyAsync(role =>
-                role.UserId == userRole.UserId
-                && role.Name == userRole.Name
-                && (!userRoleIdToExclude.HasValue || role.Id != userRoleIdToExclude.Value));
+            if (userRole.UserId.HasValue)
+            {
+                var userExists = await _context.Users.AnyAsync(user => user.Id == userRole.UserId.Value);
+
+                if (!userExists)
+                {
+                    ModelState.AddModelError("UserId", "Debe seleccionar un usuario valido.");
+                    return;
+                }
+            }
+
+            var duplicatedRole = userRole.UserId.HasValue
+                ? await _context.UserRoles.AnyAsync(role =>
+                    role.UserId == userRole.UserId.Value
+                    && role.Name == userRole.Name
+                    && (!userRoleIdToExclude.HasValue || role.Id != userRoleIdToExclude.Value))
+                : await _context.UserRoles.AnyAsync(role =>
+                    role.UserId == null
+                    && role.Name == userRole.Name
+                    && (!userRoleIdToExclude.HasValue || role.Id != userRoleIdToExclude.Value));
 
             if (duplicatedRole)
             {
-                ModelState.AddModelError("Name", "Este usuario ya tiene asignado ese rol.");
+                ModelState.AddModelError("Name", userRole.UserId.HasValue
+                    ? "Este usuario ya tiene asignado ese rol."
+                    : "Este rol ya existe.");
             }
-        }
-
-        private async Task LoadUsersSelectListAsync(int? selectedUserId = null)
-        {
-            var users = await _context.Users
-                .OrderBy(user => user.FullName)
-                .Select(user => new
-                {
-                    user.Id,
-                    DisplayName = user.FullName + " (" + user.Email + ")"
-                })
-                .ToListAsync();
-
-            ViewData["UserId"] = new SelectList(users, "Id", "DisplayName", selectedUserId);
         }
 
         private static string NormalizeRoleName(string? roleName)
         {
-            return (roleName ?? string.Empty).Trim();
+            return (roleName ?? string.Empty).Trim().ToLowerInvariant();
+        }
+
+        private static bool IsValidRoleName(string roleName)
+        {
+            return Regex.IsMatch(roleName, UserRole.NamePattern);
         }
     }
 }

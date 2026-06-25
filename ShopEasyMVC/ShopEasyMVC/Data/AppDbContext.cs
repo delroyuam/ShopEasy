@@ -27,7 +27,13 @@ namespace ShopEasyMVC.Data
 
             modelBuilder.Entity<UserRole>()
                 .HasIndex(userRole => new { userRole.UserId, userRole.Name })
-                .IsUnique();
+                .IsUnique()
+                .HasFilter("[UserId] IS NOT NULL");
+
+            modelBuilder.Entity<UserRole>()
+                .HasIndex(userRole => userRole.Name)
+                .IsUnique()
+                .HasFilter("[UserId] IS NULL");
 
             modelBuilder.Entity<Category>()
                 .HasIndex(category => category.Name)
@@ -55,6 +61,7 @@ namespace ShopEasyMVC.Data
                 .HasMany(user => user.UserRoles)
                 .WithOne(userRole => userRole.User)
                 .HasForeignKey(userRole => userRole.UserId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<User>()

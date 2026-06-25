@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ShopEasyMVC.Data;
 using ShopEasyMVC.Models;
+using System.Text.RegularExpressions;
 
 namespace ShopEasyMVC.Controllers
 {
@@ -18,7 +20,10 @@ namespace ShopEasyMVC.Controllers
         // GET: Users
         public async Task<IActionResult> Index()
         {
-            var users = await _context.Users.ToListAsync();
+            var users = await _context.Users
+                .Include(user => user.UserRoles)
+                .ToListAsync();
+
             return View(users);
         }
 
@@ -44,27 +49,39 @@ namespace ShopEasyMVC.Controllers
         }
 
         // GET: Users/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
+            await LoadRolesSelectListAsync();
             return View();
         }
 
         // POST: Users/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(User user)
+        public async Task<IActionResult> Create([Bind("FullName,Email,PasswordHash")] User user, string roleName)
         {
             user.Email = NormalizeEmail(user.Email);
+            roleName = NormalizeRoleName(roleName);
 
             if (await EmailExistsAsync(user.Email))
             {
                 ModelState.AddModelError("Email", "Ya existe un usuario con este correo.");
             }
 
+            if (!IsValidRoleName(roleName))
+            {
+                ModelState.AddModelError("roleName", "Debe seleccionar un rol valido.");
+            }
+            else if (!await RoleCatalogExistsAsync(roleName))
+            {
+                ModelState.AddModelError("roleName", "Debe seleccionar un rol existente.");
+            }
+
             if (ModelState.IsValid)
             {
                 var passwordHasher = new PasswordHasher<User>();
                 user.PasswordHash = passwordHasher.HashPassword(user, user.PasswordHash);
+                user.UserRoles.Add(new UserRole { Name = roleName });
 
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
@@ -72,6 +89,7 @@ namespace ShopEasyMVC.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
+            await LoadRolesSelectListAsync(roleName);
             return View(user);
         }
 
@@ -189,9 +207,36 @@ namespace ShopEasyMVC.Controllers
                 u.Email == email && (!userIdToExclude.HasValue || u.Id != userIdToExclude.Value));
         }
 
+        private async Task<bool> RoleCatalogExistsAsync(string roleName)
+        {
+            return await _context.UserRoles.AnyAsync(role =>
+                role.UserId == null && role.Name == roleName);
+        }
+
+        private async Task LoadRolesSelectListAsync(string? selectedRoleName = null)
+        {
+            var roles = await _context.UserRoles
+                .Where(role => role.UserId == null)
+                .OrderBy(role => role.Name)
+                .Select(role => role.Name)
+                .ToListAsync();
+
+            ViewData["RoleName"] = new SelectList(roles, selectedRoleName);
+        }
+
         private static string NormalizeEmail(string? email)
         {
             return (email ?? string.Empty).Trim().ToLowerInvariant();
+        }
+
+        private static string NormalizeRoleName(string? roleName)
+        {
+            return (roleName ?? string.Empty).Trim().ToLowerInvariant();
+        }
+
+        private static bool IsValidRoleName(string roleName)
+        {
+            return Regex.IsMatch(roleName, UserRole.NamePattern);
         }
     }
 }
