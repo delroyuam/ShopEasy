@@ -78,6 +78,14 @@ namespace ShopEasyMVC.Data
 
             context.Orders.AddRange(orders);
 
+            foreach (var order in orders.Where(order => order.Status != OrderStatus.Cancelled))
+            {
+                foreach (var item in order.OrderItems)
+                {
+                    item.Product.Stock -= item.Quantity;
+                }
+            }
+
             await context.SaveChangesAsync();
         }
 

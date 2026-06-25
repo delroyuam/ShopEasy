@@ -63,6 +63,12 @@ namespace ShopEasyMVC.Controllers
 
             if (ModelState.IsValid)
             {
+                var product = await _context.Products.FindAsync(orderItem.ProductId);
+                if (product is not null)
+                {
+                    product.Stock -= orderItem.Quantity;
+                }
+
                 _context.OrderItems.Add(orderItem);
                 await _context.SaveChangesAsync();
 
@@ -103,17 +109,29 @@ namespace ShopEasyMVC.Controllers
             ModelState.Remove("Order");
             ModelState.Remove("Product");
 
-            await ValidateOrderItemAsync(orderItem, orderItem.Id);
+            var existingOrderItem = await _context.OrderItems.FindAsync(id);
+
+            if (existingOrderItem is null)
+            {
+                return NotFound();
+            }
+
+            await ValidateOrderItemAsync(orderItem, existingOrderItem);
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    var existingOrderItem = await _context.OrderItems.FindAsync(id);
-
-                    if (existingOrderItem is null)
+                    var previousProduct = await _context.Products.FindAsync(existingOrderItem.ProductId);
+                    if (previousProduct is not null)
                     {
-                        return NotFound();
+                        previousProduct.Stock += existingOrderItem.Quantity;
+                    }
+
+                    var newProduct = await _context.Products.FindAsync(orderItem.ProductId);
+                    if (newProduct is not null)
+                    {
+                        newProduct.Stock -= orderItem.Quantity;
                     }
 
                     existingOrderItem.Quantity = orderItem.Quantity;
@@ -164,10 +182,21 @@ namespace ShopEasyMVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var orderItem = await _context.OrderItems.FindAsync(id);
+            var orderItem = await _context.OrderItems
+                .Include(oi => oi.Order)
+                .FirstOrDefaultAsync(oi => oi.Id == id);
 
             if (orderItem is not null)
             {
+                if (orderItem.Order is null || orderItem.Order.Status != OrderStatus.Cancelled)
+                {
+                    var product = await _context.Products.FindAsync(orderItem.ProductId);
+                    if (product is not null)
+                    {
+                        product.Stock += orderItem.Quantity;
+                    }
+                }
+
                 _context.OrderItems.Remove(orderItem);
                 await _context.SaveChangesAsync();
             }
@@ -180,7 +209,7 @@ namespace ShopEasyMVC.Controllers
             return _context.OrderItems.Any(oi => oi.Id == id);
         }
 
-        private async Task ValidateOrderItemAsync(OrderItem orderItem, int? orderItemIdToExclude = null)
+        private async Task ValidateOrderItemAsync(OrderItem orderItem, OrderItem? existingOrderItem = null)
         {
             var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == orderItem.OrderId);
 
@@ -193,17 +222,33 @@ namespace ShopEasyMVC.Controllers
                 ModelState.AddModelError("OrderId", "Solo se pueden agregar productos a órdenes pendientes.");
             }
 
-            var productExists = await _context.Products.AnyAsync(p => p.Id == orderItem.ProductId);
+            var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == orderItem.ProductId);
 
-            if (!productExists)
+            if (product is null)
             {
                 ModelState.AddModelError("ProductId", "Debe seleccionar un producto válido.");
+            }
+            else
+            {
+                var alreadyReserved = existingOrderItem is not null && existingOrderItem.ProductId == product.Id
+                    ? existingOrderItem.Quantity
+                    : 0;
+                var available = product.Stock + alreadyReserved;
+
+                if (available <= 0)
+                {
+                    ModelState.AddModelError("ProductId", "El producto está agotado.");
+                }
+                else if (orderItem.Quantity > available)
+                {
+                    ModelState.AddModelError("Quantity", $"Solo hay {available} unidad(es) disponible(s).");
+                }
             }
 
             var duplicatedProductInOrder = await _context.OrderItems.AnyAsync(oi =>
                 oi.OrderId == orderItem.OrderId
                 && oi.ProductId == orderItem.ProductId
-                && (!orderItemIdToExclude.HasValue || oi.Id != orderItemIdToExclude.Value));
+                && (existingOrderItem == null || oi.Id != existingOrderItem.Id));
 
             if (duplicatedProductInOrder)
             {
@@ -213,21 +258,19 @@ namespace ShopEasyMVC.Controllers
 
         private async Task LoadSelectListsAsync(int? selectedOrderId = null, int? selectedProductId = null)
         {
-            // Solo se pueden agregar productos a órdenes pendientes.
             var orders = await _context.Orders
                 .Where(o => o.Status == OrderStatus.Pending)
                 .OrderBy(o => o.OrderNumber)
                 .ToListAsync();
 
             var products = await _context.Products
-                .Where(p => p.IsActive)
+                .Where(p => p.IsActive && (p.Stock > 0 || p.Id == selectedProductId))
                 .OrderBy(p => p.Name)
                 .ToListAsync();
 
             ViewData["OrderId"] = new SelectList(orders, "Id", "OrderNumber", selectedOrderId);
             ViewData["ProductId"] = new SelectList(products, "Id", "Name", selectedProductId);
 
-            // Mapa producto -> precio actual para autocompletar el precio unitario en el formulario.
             ViewData["ProductPrices"] = JsonSerializer.Serialize(
                 products.ToDictionary(product => product.Id, product => product.CurrentPrice));
         }

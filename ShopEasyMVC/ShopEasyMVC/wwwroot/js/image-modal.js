@@ -1,4 +1,3 @@
-// Amplía la imagen de un producto al hacer clic, mostrándola en un modal de Bootstrap.
 document.addEventListener('DOMContentLoaded', function () {
     var imageModal = document.getElementById('imageModal');
     if (!imageModal) return;

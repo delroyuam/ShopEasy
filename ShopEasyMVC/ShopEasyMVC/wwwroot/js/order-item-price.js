@@ -1,4 +1,3 @@
-// Autocompleta el precio unitario con el precio del producto seleccionado.
 document.addEventListener('DOMContentLoaded', function () {
     var productSelect = document.getElementById('ProductId');
     var priceInput = document.getElementById('UnitPrice');

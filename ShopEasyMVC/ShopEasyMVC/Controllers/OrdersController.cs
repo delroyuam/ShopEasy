@@ -53,7 +53,9 @@ namespace ShopEasyMVC.Controllers
             }
             else
             {
+                var previousStatus = order.Status;
                 order.Status = status;
+                await AdjustStockForStatusChangeAsync(order.Id, previousStatus, status);
                 await _context.SaveChangesAsync();
 
                 TempData["StatusMessage"] = $"La orden {order.OrderNumber} cambió a estado «{status.GetDisplayName()}».";
@@ -102,7 +104,6 @@ namespace ShopEasyMVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("TotalAmount,Status,CreatedAt,UserId")] Order order)
         {
-            // El número de orden se genera automáticamente (ORD-AÑO-001, 002, ...).
             order.OrderNumber = await GenerateOrderNumberAsync(order.CreatedAt.Year);
 
             ModelState.Remove("User");
@@ -170,12 +171,15 @@ namespace ShopEasyMVC.Controllers
                         return NotFound();
                     }
 
+                    var previousStatus = existingOrder.Status;
+
                     existingOrder.OrderNumber = order.OrderNumber;
                     existingOrder.TotalAmount = order.TotalAmount;
                     existingOrder.Status = order.Status;
                     existingOrder.CreatedAt = order.CreatedAt;
                     existingOrder.UserId = order.UserId;
 
+                    await AdjustStockForStatusChangeAsync(existingOrder.Id, previousStatus, order.Status);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -220,10 +224,24 @@ namespace ShopEasyMVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var order = await _context.Orders.FindAsync(id);
+            var order = await _context.Orders
+                .Include(o => o.OrderItems)
+                    .ThenInclude(item => item.Product)
+                .FirstOrDefaultAsync(o => o.Id == id);
 
             if (order is not null)
             {
+                if (order.Status != OrderStatus.Cancelled)
+                {
+                    foreach (var item in order.OrderItems)
+                    {
+                        if (item.Product is not null)
+                        {
+                            item.Product.Stock += item.Quantity;
+                        }
+                    }
+                }
+
                 _context.Orders.Remove(order);
                 await _context.SaveChangesAsync();
             }
@@ -236,7 +254,39 @@ namespace ShopEasyMVC.Controllers
             return _context.Orders.Any(o => o.Id == id);
         }
 
-        // Genera el siguiente número de orden correlativo para el año: ORD-{año}-001, 002, ...
+        private async Task AdjustStockForStatusChangeAsync(int orderId, OrderStatus previousStatus, OrderStatus newStatus)
+        {
+            var becameCancelled = newStatus == OrderStatus.Cancelled && previousStatus != OrderStatus.Cancelled;
+            var leftCancelled = previousStatus == OrderStatus.Cancelled && newStatus != OrderStatus.Cancelled;
+
+            if (!becameCancelled && !leftCancelled)
+            {
+                return;
+            }
+
+            var items = await _context.OrderItems
+                .Include(item => item.Product)
+                .Where(item => item.OrderId == orderId)
+                .ToListAsync();
+
+            foreach (var item in items)
+            {
+                if (item.Product is null)
+                {
+                    continue;
+                }
+
+                if (becameCancelled)
+                {
+                    item.Product.Stock += item.Quantity;
+                }
+                else
+                {
+                    item.Product.Stock -= item.Quantity;
+                }
+            }
+        }
+
         private async Task<string> GenerateOrderNumberAsync(int year)
         {
             var prefix = $"ORD-{year}-";
