@@ -21,6 +21,12 @@ namespace ShopEasyMVC.Models
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        [StringLength(256, ErrorMessage = "La dirección de envío no puede superar los 256 caracteres.")]
+        public string? ShippingAddress { get; set; }
+
+        [EnumDataType(typeof(PaymentMethod), ErrorMessage = "El método de pago no es válido.")]
+        public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.Cash;
+
         [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar un usuario válido.")]
         public int UserId { get; set; }
 

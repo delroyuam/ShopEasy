@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShopEasyMVC.Data;
@@ -5,6 +6,7 @@ using ShopEasyMVC.Models;
 
 namespace ShopEasyMVC.Controllers
 {
+    [Authorize(Roles = "admin")]
     public class CategoriesController : Controller
     {
         private readonly AppDbContext _context;

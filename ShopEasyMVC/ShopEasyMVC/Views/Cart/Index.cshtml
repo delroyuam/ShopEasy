@@ -1,0 +1,60 @@
+@using ShopEasyMVC.Helpers
+@model List<ShopEasyMVC.Models.CartLine>
+
+@{
+    ViewData["Title"] = "Carrito de compras";
+}
+
+<h1>Carrito de compras</h1>
+
+@if (TempData["CartMessage"] is string message)
+{
+    <div class="alert alert-warning">@message</div>
+}
+
+@if (!Model.Any())
+{
+    <p>Tu carrito está vacío.</p>
+    <a asp-controller="Products" asp-action="Index" class="btn btn-secondary">Ver productos</a>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Precio</th>
+                <th>Cantidad</th>
+                <th>Subtotal</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var line in Model)
+            {
+                <tr>
+                    <td>@line.ProductName</td>
+                    <td>@line.UnitPrice.ToColones()</td>
+                    <td>
+                        <form asp-action="UpdateQuantity" method="post" class="d-flex gap-2">
+                            <input type="hidden" name="productId" value="@line.ProductId" />
+                            <input type="number" name="quantity" value="@line.Quantity" min="0" class="form-control form-control-sm" style="width:80px" />
+                            <button type="submit" class="btn btn-sm btn-outline-primary">Actualizar</button>
+                        </form>
+                    </td>
+                    <td>@line.Subtotal.ToColones()</td>
+                    <td>
+                        <form asp-action="Remove" method="post">
+                            <input type="hidden" name="productId" value="@line.ProductId" />
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Quitar</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <p><strong>Total: @Model.Sum(l => l.Subtotal).ToColones()</strong></p>
+
+    <a asp-controller="Checkout" asp-action="Index" class="btn btn-primary">Ir a pagar</a>
+}

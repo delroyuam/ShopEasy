@@ -43,7 +43,26 @@
     <dd class="col-sm-10">@Html.DisplayFor(model => model.CreatedAtUtc)</dd>
 </dl>
 
-<a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Editar</a>
+@if (Model.IsActive && Model.Stock > 0)
+{
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <form asp-controller="Cart" asp-action="Add" method="post" class="d-inline">
+            <input type="hidden" name="productId" value="@Model.Id" />
+            <input type="number" name="quantity" value="1" min="1" max="@Model.Stock" class="form-control d-inline-block" style="width:80px" />
+            <button type="submit" class="btn btn-success">Agregar al carrito</button>
+        </form>
+    }
+    else
+    {
+        <a asp-controller="Account" asp-action="Login" class="btn btn-success">Inicia sesión para comprar</a>
+    }
+}
+
+@if (User.IsInRole("admin"))
+{
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Editar</a>
+}
 <a asp-action="Index" class="btn btn-secondary">Volver</a>
 
 <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">

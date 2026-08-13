@@ -1,0 +1,31 @@
+@{
+    ViewData["Title"] = "Crear cuenta";
+}
+
+<h1>Crear cuenta</h1>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger" asp-validation-summary="All"></div>
+}
+
+<form asp-action="Register" method="post" class="col-md-6">
+    <div class="mb-3">
+        <label class="form-label">Nombre completo</label>
+        <input type="text" name="fullName" class="form-control" required />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Correo</label>
+        <input type="email" name="email" class="form-control" required />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Contraseña</label>
+        <input type="password" name="password" class="form-control" required />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Confirmar contraseña</label>
+        <input type="password" name="confirmPassword" class="form-control" required />
+    </div>
+    <button type="submit" class="btn btn-primary">Registrarme</button>
+    <a asp-action="Login" class="btn btn-link">Ya tengo cuenta</a>
+</form>

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShopEasyMVC.Data;
@@ -6,6 +7,7 @@ using System.Text.RegularExpressions;
 
 namespace ShopEasyMVC.Controllers
 {
+    [Authorize(Roles = "admin")]
     public class UserRolesController : Controller
     {
         private readonly AppDbContext _context;

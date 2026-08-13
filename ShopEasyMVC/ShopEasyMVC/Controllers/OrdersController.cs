@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +18,59 @@ namespace ShopEasyMVC.Controllers
             _context = context;
         }
 
+        [Authorize]
+        public async Task<IActionResult> MyOrders(OrderStatus? status)
+        {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            var ordersQuery = _context.Orders
+                .Include(o => o.User)
+                .Where(o => o.UserId == userId);
+
+            if (status.HasValue)
+            {
+                ordersQuery = ordersQuery.Where(o => o.Status == status.Value);
+            }
+
+            var orders = await ordersQuery
+                .OrderByDescending(o => o.CreatedAt)
+                .ToListAsync();
+
+            LoadStatusFilterList(status);
+
+            return View(orders);
+        }
+
+        [Authorize]
+        public async Task<IActionResult> MyOrderDetails(int? id)
+        {
+            if (id is null)
+            {
+                return NotFound();
+            }
+
+            var order = await _context.Orders
+                .Include(o => o.User)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Product)
+                .FirstOrDefaultAsync(o => o.Id == id);
+
+            if (order is null)
+            {
+                return NotFound();
+            }
+
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            if (order.UserId != userId)
+            {
+                return Forbid();
+            }
+
+            return View(order);
+        }
+
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> Index(OrderStatus? status)
         {
             var ordersQuery = _context.Orders
@@ -36,6 +91,7 @@ namespace ShopEasyMVC.Controllers
             return View(orders);
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateStatus(int id, OrderStatus status, OrderStatus? filter)
@@ -64,6 +120,7 @@ namespace ShopEasyMVC.Controllers
             return RedirectToAction(nameof(Index), new { status = filter });
         }
 
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id is null)
@@ -85,6 +142,7 @@ namespace ShopEasyMVC.Controllers
             return View(order);
         }
 
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> Create()
         {
             await LoadUsersSelectListAsync();
@@ -96,15 +154,16 @@ namespace ShopEasyMVC.Controllers
             {
                 CreatedAt = now,
                 Status = OrderStatus.Pending,
-                OrderNumber = await GenerateOrderNumberAsync(now.Year)
+                OrderNumber = await OrderNumberGenerator.GenerateAsync(_context, now.Year)
             });
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("TotalAmount,Status,CreatedAt,UserId")] Order order)
         {
-            order.OrderNumber = await GenerateOrderNumberAsync(order.CreatedAt.Year);
+            order.OrderNumber = await OrderNumberGenerator.GenerateAsync(_context, order.CreatedAt.Year);
 
             ModelState.Remove("User");
             ModelState.Remove("OrderItems");
@@ -125,6 +184,7 @@ namespace ShopEasyMVC.Controllers
             return View(order);
         }
 
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id is null)
@@ -144,6 +204,7 @@ namespace ShopEasyMVC.Controllers
             return View(order);
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,OrderNumber,TotalAmount,Status,CreatedAt,UserId")] Order order)
@@ -200,6 +261,7 @@ namespace ShopEasyMVC.Controllers
             return View(order);
         }
 
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id is null)
@@ -220,6 +282,7 @@ namespace ShopEasyMVC.Controllers
             return View(order);
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -282,28 +345,6 @@ namespace ShopEasyMVC.Controllers
                     item.Product.Stock -= item.Quantity;
                 }
             }
-        }
-
-        private async Task<string> GenerateOrderNumberAsync(int year)
-        {
-            var prefix = $"ORD-{year}-";
-
-            var existingNumbers = await _context.Orders
-                .Where(o => o.OrderNumber.StartsWith(prefix))
-                .Select(o => o.OrderNumber)
-                .ToListAsync();
-
-            var maxSequence = 0;
-
-            foreach (var number in existingNumbers)
-            {
-                if (int.TryParse(number.AsSpan(prefix.Length), out var sequence) && sequence > maxSequence)
-                {
-                    maxSequence = sequence;
-                }
-            }
-
-            return $"{prefix}{maxSequence + 1:D3}";
         }
 
         private async Task ValidateOrderAsync(Order order, int? orderIdToExclude = null)

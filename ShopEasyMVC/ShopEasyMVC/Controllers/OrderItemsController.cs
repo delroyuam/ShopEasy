@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +8,7 @@ using ShopEasyMVC.Models;
 
 namespace ShopEasyMVC.Controllers
 {
+    [Authorize(Roles = "admin")]
     public class OrderItemsController : Controller
     {
         private readonly AppDbContext _context;

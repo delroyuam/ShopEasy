@@ -1,0 +1,53 @@
+@using ShopEasyMVC.Helpers
+@using ShopEasyMVC.Models
+@model List<CartLine>
+
+@{
+    ViewData["Title"] = "Checkout";
+}
+
+<h1>Confirmar pedido</h1>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger" asp-validation-summary="All"></div>
+}
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Producto</th>
+            <th>Cantidad</th>
+            <th>Subtotal</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var line in Model)
+        {
+            <tr>
+                <td>@line.ProductName</td>
+                <td>@line.Quantity</td>
+                <td>@line.Subtotal.ToColones()</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<p><strong>Total: @Model.Sum(l => l.Subtotal).ToColones()</strong></p>
+
+<form asp-action="Confirm" method="post">
+    <div class="mb-3">
+        <label class="form-label">Dirección de envío</label>
+        <input type="text" name="shippingAddress" class="form-control" required />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Método de pago</label>
+        <select name="paymentMethod" class="form-select">
+            @foreach (var method in Enum.GetValues<PaymentMethod>())
+            {
+                <option value="@method">@method.GetDisplayName()</option>
+            }
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Confirmar pedido</button>
+</form>

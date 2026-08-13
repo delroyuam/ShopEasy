@@ -1,0 +1,22 @@
+@using ShopEasyMVC.Helpers
+@model ShopEasyMVC.Models.Order
+
+@{
+    ViewData["Title"] = "Pedido confirmado";
+}
+
+<h1>¡Pedido confirmado!</h1>
+
+<p>Número de orden: <strong>@Model.OrderNumber</strong></p>
+<p>Total: <strong>@Model.TotalAmount.ToColones()</strong></p>
+<p>Dirección de envío: @Model.ShippingAddress</p>
+<p>Método de pago: @Model.PaymentMethod.GetDisplayName()</p>
+
+<ul>
+    @foreach (var item in Model.OrderItems)
+    {
+        <li>@item.Product.Name x @item.Quantity - @(item.UnitPrice * item.Quantity).ToColones()</li>
+    }
+</ul>
+
+<a asp-controller="Orders" asp-action="MyOrders" class="btn btn-secondary">Ver mis pedidos</a>

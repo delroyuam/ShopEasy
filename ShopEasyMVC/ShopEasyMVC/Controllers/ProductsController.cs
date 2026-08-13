@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -73,12 +74,14 @@ namespace ShopEasyMVC.Controllers
             return View(product);
         }
 
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> Create()
         {
             await LoadCategoriesSelectListAsync();
             return View();
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Name,Description,CurrentPrice,Stock,ImageUrl,IsActive,CategoryId")] Product product)
@@ -104,6 +107,7 @@ namespace ShopEasyMVC.Controllers
             return View(product);
         }
 
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id is null)
@@ -122,6 +126,7 @@ namespace ShopEasyMVC.Controllers
             return View(product);
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,CurrentPrice,Stock,ImageUrl,IsActive,CategoryId")] Product product)
@@ -177,6 +182,7 @@ namespace ShopEasyMVC.Controllers
             return View(product);
         }
 
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id is null)
@@ -196,6 +202,7 @@ namespace ShopEasyMVC.Controllers
             return View(product);
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

@@ -1,0 +1,39 @@
+@using ShopEasyMVC.Helpers
+@model IEnumerable<ShopEasyMVC.Models.Order>
+
+@{
+    ViewData["Title"] = "Mis pedidos";
+}
+
+<h1>Mis pedidos</h1>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">Todavía no tienes pedidos.</div>
+}
+else
+{
+    <table class="table table-bordered table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Número</th>
+                <th>Total</th>
+                <th>Estado</th>
+                <th>Fecha</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.OrderNumber</td>
+                    <td>@item.TotalAmount.ToColones()</td>
+                    <td><span class="badge @item.Status.ToBadgeClass()">@item.Status.GetDisplayName()</span></td>
+                    <td>@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td><a asp-action="MyOrderDetails" asp-route-id="@item.Id" class="btn btn-info btn-sm">Detalles</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
