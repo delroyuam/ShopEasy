@@ -4,53 +4,141 @@
     ViewData["Title"] = "Agregar producto a orden";
 }
 
-<h1>Agregar producto a orden</h1>
+<div class="inventory-page">
 
-<hr />
+    <!-- ENCABEZADO -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
 
-<div class="row">
-    <div class="col-md-5">
-        <form asp-action="Create" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-            <div class="form-group mb-3">
-                <label asp-for="OrderId" class="control-label">Orden</label>
-                <select asp-for="OrderId" class="form-control" asp-items="ViewBag.OrderId">
-                    <option value="">Seleccione una orden</option>
-                </select>
-                <span asp-validation-for="OrderId" class="text-danger"></span>
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <h1 class="h3 mb-0 fw-bold page-title">
+                    Agregar Producto a Orden
+                </h1>
             </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="ProductId" class="control-label">Producto</label>
-                <select asp-for="ProductId" class="form-control" asp-items="ViewBag.ProductId"
-                        data-product-prices="@ViewData["ProductPrices"]">
-                    <option value="">Seleccione un producto</option>
-                </select>
-                <span asp-validation-for="ProductId" class="text-danger"></span>
-            </div>
+            <p class="mb-0 page-subtitle">
+                Asocia un producto y su cantidad a una orden existente.
+            </p>
+        </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="Quantity" class="control-label">Cantidad</label>
-                <input asp-for="Quantity" type="number" min="1" class="form-control" />
-                <span asp-validation-for="Quantity" class="text-danger"></span>
-            </div>
+        <a asp-action="Index"
+           class="btn btn-outline-secondary shadow-sm px-4 rounded-pill fw-semibold">
+            Volver
+        </a>
 
-            <div class="form-group mb-3">
-                <label asp-for="UnitPrice" class="control-label">Precio unitario</label>
-                <input asp-for="UnitPrice" class="form-control" />
-                <span asp-validation-for="UnitPrice" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <input type="submit" value="Crear" class="btn btn-primary" />
-                <a asp-action="Index" class="btn btn-secondary">Volver</a>
-            </div>
-        </form>
     </div>
+
+
+    <!-- FORMULARIO -->
+    <div class="card enterprise-card mb-4">
+
+        <div class="card-body p-4">
+
+            <div class="d-flex align-items-center mb-3">
+
+                <div>
+                    <h2 class="h6 fw-bold mb-1 section-title">
+                        Información del detalle de orden
+                    </h2>
+
+                    <p class="small mb-0 section-subtitle">
+                        Selecciona la orden, el producto y define la cantidad.
+                    </p>
+                </div>
+
+            </div>
+
+            <form asp-action="Create" method="post" class="row g-3">
+
+                <div asp-validation-summary="ModelOnly" class="text-danger col-12"></div>
+
+                <!-- ORDEN -->
+                <div class="col-12 col-md-6">
+
+                    <label asp-for="OrderId" class="form-label enterprise-label">
+                        Orden
+                    </label>
+
+                    <select asp-for="OrderId" class="form-select enterprise-input" asp-items="ViewBag.OrderId">
+                        <option value="">Seleccione una orden</option>
+                    </select>
+                    <span asp-validation-for="OrderId" class="text-danger"></span>
+
+                </div>
+
+
+                <!-- PRODUCTO -->
+                <div class="col-12 col-md-6">
+
+                    <label asp-for="ProductId" class="form-label enterprise-label">
+                        Producto
+                    </label>
+
+                    <select asp-for="ProductId" class="form-select enterprise-input" asp-items="ViewBag.ProductId"
+                            data-product-prices="@ViewData["ProductPrices"]">
+                        <option value="">Seleccione un producto</option>
+                    </select>
+                    <span asp-validation-for="ProductId" class="text-danger"></span>
+
+                </div>
+
+
+                <!-- CANTIDAD -->
+                <div class="col-12 col-md-6">
+
+                    <label asp-for="Quantity" class="form-label enterprise-label">
+                        Cantidad
+                    </label>
+
+                    <input asp-for="Quantity" type="number" min="1" class="form-control enterprise-input" />
+                    <span asp-validation-for="Quantity" class="text-danger"></span>
+
+                </div>
+
+
+                <!-- PRECIO UNITARIO -->
+                <div class="col-12 col-md-6">
+
+                    <label asp-for="UnitPrice" class="form-label enterprise-label">
+                        Precio unitario
+                    </label>
+
+                    <div class="input-group">
+
+                        <span class="input-group-text enterprise-input-icon">
+                            ₡
+                        </span>
+
+                        <input asp-for="UnitPrice" class="form-control enterprise-input" />
+
+                    </div>
+                    <span asp-validation-for="UnitPrice" class="text-danger"></span>
+
+                </div>
+
+
+                <!-- BOTONES -->
+                <div class="col-12 d-flex gap-2 mt-4">
+
+                    <input type="submit" value="Crear detalle" class="btn btn-primary fw-semibold px-4 rounded-pill" />
+
+                    <a asp-action="Index" class="btn btn-outline-secondary fw-semibold px-4 rounded-pill">
+                        Cancelar
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
 </div>
 
 @section Scripts {
-    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
     <script src="~/js/order-item-price.js" asp-append-version="true"></script>
 }

@@ -4,28 +4,85 @@
     ViewData["Title"] = "Editar rol de usuario";
 }
 
-<h1>Editar rol de usuario</h1>
+<div class="inventory-page">
 
-<hr />
+    <!-- ENCABEZADO -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
 
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Id" />
-
-            <div class="form-group mb-3">
-                <label asp-for="Name" class="control-label">Rol</label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <h1 class="h3 mb-0 fw-bold page-title">
+                    Editar Rol de Usuario
+                </h1>
             </div>
 
-            <div class="form-group">
-                <input type="submit" value="Guardar" class="btn btn-primary" />
-                <a asp-action="Index" class="btn btn-secondary">Volver</a>
-            </div>
-        </form>
+            <p class="mb-0 page-subtitle">
+                Modifica la información del rol seleccionado.
+            </p>
+        </div>
+
+        <a asp-action="Index"
+           class="btn btn-outline-secondary shadow-sm px-4 rounded-pill fw-semibold">
+            Volver
+        </a>
+
     </div>
+
+
+    <!-- FORMULARIO -->
+    <div class="card enterprise-card mb-4">
+
+        <div class="card-body p-4">
+
+            <div class="d-flex align-items-center mb-3">
+
+                <div>
+                    <h2 class="h6 fw-bold mb-1 section-title">
+                        Información del rol
+                    </h2>
+
+                    <p class="small mb-0 section-subtitle">
+                        Actualiza el campo necesario y guarda los cambios.
+                    </p>
+                </div>
+
+            </div>
+
+            <form asp-action="Edit" method="post" class="row g-3">
+
+                <div asp-validation-summary="ModelOnly" class="text-danger col-12"></div>
+                <input type="hidden" asp-for="Id" />
+
+                <!-- ROL -->
+                <div class="col-12">
+
+                    <label asp-for="Name" class="form-label enterprise-label">
+                        Rol
+                    </label>
+
+                    <input asp-for="Name" class="form-control enterprise-input" />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+
+                </div>
+
+
+                <!-- BOTONES -->
+                <div class="col-12 d-flex gap-2 mt-4">
+
+                    <input type="submit" value="Guardar cambios" class="btn btn-primary fw-semibold px-4 rounded-pill" />
+
+                    <a asp-action="Index" class="btn btn-outline-secondary fw-semibold px-4 rounded-pill">
+                        Cancelar
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
 </div>
 
 @section Scripts {

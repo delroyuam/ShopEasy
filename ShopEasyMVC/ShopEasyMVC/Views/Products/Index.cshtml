@@ -2,128 +2,903 @@
 
 @{
     ViewData["Title"] = "Gestión de Inventario";
+
     var search = ViewData["Search"] as string;
     var stockFilter = ViewData["StockFilter"] as string;
     var lowStockThreshold = (int)(ViewData["LowStockThreshold"] ?? 5);
 }
 
-<h1>Gestión de Inventario</h1>
-<p class="text-muted">Panel de administración de productos (RF-008).</p>
+<div class="inventory-page">
 
-<form asp-action="Index" method="get" class="row g-2 align-items-end mb-3">
-    <div class="col-md-4">
-        <label for="search" class="form-label mb-1">Buscar por nombre</label>
-        <input type="text" name="search" id="search" value="@search" class="form-control" placeholder="Nombre del producto" />
-    </div>
-    <div class="col-md-3">
-        <label for="categoryId" class="form-label mb-1">Categoría</label>
-        <select name="categoryId" id="categoryId" class="form-select" asp-items="ViewBag.CategoryId">
-            <option value="">Todas</option>
-        </select>
-    </div>
-    <div class="col-md-3">
-        <label for="stock" class="form-label mb-1">Disponibilidad</label>
-        <select name="stock" id="stock" class="form-select">
-            <option value="">Todas</option>
-            <option value="in" selected="@(stockFilter == "in")">En stock</option>
-            <option value="low" selected="@(stockFilter == "low")">Stock bajo</option>
-            <option value="out" selected="@(stockFilter == "out")">Agotado</option>
-        </select>
-    </div>
-    <div class="col-md-2 d-flex gap-2">
-        <button type="submit" class="btn btn-outline-primary">Filtrar</button>
-        <a asp-action="Index" class="btn btn-outline-secondary">Limpiar</a>
-    </div>
-</form>
+    <!-- ENCABEZADO -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
 
-@if (User.IsInRole("admin"))
-{
-    <p>
-        <a asp-action="Create" class="btn btn-primary">Crear producto</a>
-    </p>
-}
-
-<table class="table table-bordered table-striped align-middle">
-    <thead>
-        <tr>
-            <th>Imagen</th>
-            <th>Nombre</th>
-            <th>Precio</th>
-            <th>Stock</th>
-            <th>Disponibilidad</th>
-            <th>Activo</th>
-            <th>Categoría</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>
-                    @if (!string.IsNullOrWhiteSpace(item.ImageUrl))
-                    {
-                        <img src="@item.ImageUrl" alt="@item.Name"
-                             style="width:48px;height:48px;object-fit:cover;cursor:pointer;"
-                             class="rounded product-thumb"
-                             data-bs-toggle="modal" data-bs-target="#imageModal"
-                             data-img-src="@item.ImageUrl" data-img-alt="@item.Name" />
-                    }
-                    else
-                    {
-                        <span class="text-muted">—</span>
-                    }
-                </td>
-                <td>@item.Name</td>
-                <td>@item.CurrentPrice.ToColones()</td>
-                <td>@item.Stock</td>
-                <td>
-                    @if (item.Stock == 0)
-                    {
-                        <span class="badge bg-danger">Agotado</span>
-                    }
-                    else if (item.Stock <= lowStockThreshold)
-                    {
-                        <span class="badge bg-warning text-dark">Stock bajo</span>
-                    }
-                    else
-                    {
-                        <span class="badge bg-success">En stock</span>
-                    }
-                </td>
-                <td>@(item.IsActive ? "Sí" : "No")</td>
-                <td>@item.Category.Name</td>
-                <td>
-                    @if (User.IsInRole("admin"))
-                    {
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm">Editar</a>
-                    }
-                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm">Detalles</a>
-                    @if (User.IsInRole("admin"))
-                    {
-                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm">Eliminar</a>
-                    }
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
-
-@if (!Model.Any())
-{
-    <div class="alert alert-info">No hay productos que coincidan con los filtros seleccionados.</div>
-}
-
-<div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-            <div class="modal-body text-center p-0">
-                <img id="imageModalImg" src="" alt="" class="img-fluid rounded" />
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <h1 class="h3 mb-0 fw-bold page-title">
+                    Gestión de Inventario
+                </h1>
             </div>
+
+            <p class="mb-0 page-subtitle">
+                Administración y control de productos del sistema.
+            </p>
         </div>
+
+        @if (User.IsInRole("admin"))
+        {
+            <a asp-action="Create"
+               class="btn btn-primary shadow-sm px-4 rounded-pill fw-semibold">
+                <span class="me-1">+</span>
+                Nuevo Producto
+            </a>
+        }
+
     </div>
+
+
+    <!-- FILTROS -->
+    <div class="card enterprise-card mb-4">
+
+        <div class="card-body p-4">
+
+            <div class="d-flex align-items-center mb-3">
+
+                <div>
+                    <h2 class="h6 fw-bold mb-1 section-title">
+                        Filtros de búsqueda
+                    </h2>
+
+                    <p class="small mb-0 section-subtitle">
+                        Utiliza los filtros para localizar productos rápidamente.
+                    </p>
+                </div>
+
+            </div>
+
+            <form asp-action="Index"
+                  method="get"
+                  class="row g-3 align-items-end">
+
+                <!-- BUSCAR -->
+                <div class="col-12 col-md-4">
+
+                    <label for="search"
+                           class="form-label enterprise-label">
+                        Buscar por nombre
+                    </label>
+
+                    <div class="input-group">
+
+                        <span class="input-group-text enterprise-input-icon">
+                            🔎
+                        </span>
+
+                        <input type="text"
+                               name="search"
+                               id="search"
+                               value="@search"
+                               class="form-control enterprise-input"
+                               placeholder="Ej. Monitor curvo..." />
+
+                    </div>
+
+                </div>
+
+
+                <!-- CATEGORÍA -->
+                <div class="col-12 col-md-3">
+
+                    <label for="categoryId"
+                           class="form-label enterprise-label">
+                        Categoría
+                    </label>
+
+                    <select name="categoryId"
+                            id="categoryId"
+                            class="form-select enterprise-input"
+                            asp-items="ViewBag.CategoryId">
+
+                        <option value="">
+                            Todas las categorías
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- STOCK -->
+                <div class="col-12 col-md-3">
+
+                    <label for="stock"
+                           class="form-label enterprise-label">
+                        Disponibilidad
+                    </label>
+
+                    <select name="stock"
+                            id="stock"
+                            class="form-select enterprise-input">
+
+                        <option value="">
+                            Cualquier estado
+                        </option>
+
+                        <option value="in"
+                                selected="@(stockFilter == "in")">
+                            En stock
+                        </option>
+
+                        <option value="low"
+                                selected="@(stockFilter == "low")">
+                            Stock bajo
+                        </option>
+
+                        <option value="out"
+                                selected="@(stockFilter == "out")">
+                            Agotado
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- BOTÓN -->
+                <div class="col-12 col-md-2">
+
+                    <button type="submit"
+                            class="btn btn-primary w-100 fw-semibold enterprise-filter-button">
+
+                        Filtrar
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- TABLA PRINCIPAL -->
+    <div class="card enterprise-card">
+
+        <div class="card-body p-0">
+
+            @if (!Model.Any())
+            {
+                <!-- SIN RESULTADOS -->
+                <div class="empty-state">
+
+                    <div class="empty-state-icon">
+                        📦
+                    </div>
+
+                    <h5 class="fw-bold empty-state-title">
+                        No se encontraron productos
+                    </h5>
+
+                    <p class="empty-state-text mb-3">
+                        No existen productos que coincidan con los filtros seleccionados.
+                    </p>
+
+                    <a asp-action="Index"
+                       class="btn btn-outline-secondary rounded-pill px-4">
+                        Limpiar filtros
+                    </a>
+
+                </div>
+            }
+            else
+            {
+                <!-- INFORMACIÓN DE RESULTADOS -->
+                <div class="inventory-table-header">
+
+                    <div>
+                        <h2 class="h6 fw-bold mb-1 section-title">
+                            Productos
+                        </h2>
+
+                        <p class="small mb-0 section-subtitle">
+                            @Model.Count() producto(s) encontrado(s).
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <!-- TABLA -->
+                <div class="table-responsive">
+
+                    <table class="table enterprise-table align-middle mb-0">
+
+                        <thead>
+
+                            <tr>
+
+                                <th class="ps-4">
+                                    Imagen
+                                </th>
+
+                                <th>
+                                    Producto
+                                </th>
+
+                                <th>
+                                    Precio
+                                </th>
+
+                                <th>
+                                    Stock
+                                </th>
+
+                                <th>
+                                    Estado
+                                </th>
+
+                                <th class="text-end pe-4">
+                                    Acciones
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+
+                                    <!-- IMAGEN -->
+                                    <td class="ps-4">
+
+                                        @if (!string.IsNullOrWhiteSpace(item.ImageUrl))
+                                        {
+                                            <img src="@item.ImageUrl"
+                                                 alt="@item.Name"
+                                                 class="product-thumbnail"
+                                                 data-bs-toggle="modal"
+                                                 data-bs-target="#imageModal"
+                                                 data-img-src="@item.ImageUrl"
+                                                 data-img-alt="@item.Name"
+                                                 title="Ver imagen" />
+                                        }
+                                        else
+                                        {
+                                            <div class="product-thumbnail product-thumbnail-empty">
+                                                —
+                                            </div>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- PRODUCTO -->
+                                    <td>
+
+                                        <div class="product-name">
+                                            @item.Name
+                                        </div>
+
+                                        <div class="product-category">
+
+                                            @if (item.Category != null)
+                                            {
+                                                @item.Category.Name
+                                            }
+                                            else
+                                            {
+                                                <span>
+                                                    Sin categoría
+                                                </span>
+                                            }
+
+                                        </div>
+
+                                    </td>
+
+
+                                    <!-- PRECIO -->
+                                    <td>
+
+                                        <span class="product-price">
+                                            @item.CurrentPrice.ToColones()
+                                        </span>
+
+                                    </td>
+
+
+                                    <!-- STOCK -->
+                                    <td>
+
+                                        <span class="stock-value">
+                                            @item.Stock
+                                        </span>
+
+                                    </td>
+
+
+                                    <!-- ESTADO -->
+                                    <td>
+
+                                        @if (item.Stock == 0)
+                                        {
+                                            <span class="status-badge status-danger">
+                                                <span class="status-dot"></span>
+                                                Agotado
+                                            </span>
+                                        }
+                                        else if (item.Stock <= lowStockThreshold)
+                                        {
+                                            <span class="status-badge status-warning">
+                                                <span class="status-dot"></span>
+                                                Stock bajo
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="status-badge status-success">
+                                                <span class="status-dot"></span>
+                                                Disponible
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ACCIONES -->
+                                    <td class="text-end pe-4">
+
+                                        <div class="dropdown">
+
+                                            <button class="btn btn-sm action-button"
+                                                    type="button"
+                                                    data-bs-toggle="dropdown"
+                                                    aria-expanded="false"
+                                                    aria-label="Acciones para @item.Name">
+
+                                                <span>•••</span>
+
+                                            </button>
+
+
+                                            <ul class="dropdown-menu dropdown-menu-end enterprise-dropdown">
+
+                                                <li>
+
+                                                    <a class="dropdown-item enterprise-dropdown-item"
+                                                       asp-action="Details"
+                                                       asp-route-id="@item.Id">
+
+                                                        <span class="action-icon action-info">
+                                                            📄
+                                                        </span>
+
+                                                        Ver detalles
+
+                                                    </a>
+
+                                                </li>
+
+
+                                                @if (User.IsInRole("admin"))
+                                                {
+                                                    <li>
+
+                                                        <a class="dropdown-item enterprise-dropdown-item"
+                                                           asp-action="Edit"
+                                                           asp-route-id="@item.Id">
+
+                                                            <span class="action-icon action-warning">
+                                                                ✏️
+                                                            </span>
+
+                                                            Editar
+
+                                                        </a>
+
+                                                    </li>
+
+
+                                                    <li>
+                                                        <hr class="dropdown-divider" />
+                                                    </li>
+
+
+                                                    <li>
+
+                                                        <a class="dropdown-item enterprise-dropdown-item text-danger"
+                                                           asp-action="Delete"
+                                                           asp-route-id="@item.Id">
+
+                                                            <span class="action-icon action-danger">
+                                                                🗑️
+                                                            </span>
+
+                                                            Eliminar
+
+                                                        </a>
+
+                                                    </li>
+                                                }
+
+                                            </ul>
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
 </div>
 
+
+<!-- MODAL DE IMAGEN -->
+<div class="modal fade"
+     id="imageModal"
+     tabindex="-1"
+     aria-labelledby="imageModalLabel"
+     aria-hidden="true">
+
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+
+        <div class="modal-content enterprise-modal">
+
+            <div class="modal-header border-0">
+
+                <h5 class="modal-title fw-bold"
+                    id="imageModalLabel">
+
+                    Imagen del producto
+
+                </h5>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Cerrar">
+                </button>
+
+            </div>
+
+
+            <div class="modal-body text-center px-4 pb-4">
+
+                <div class="image-preview-container">
+
+                    <img id="imageModalImg"
+                         src=""
+                         alt=""
+                         class="img-fluid image-preview" />
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
 @section Scripts {
-    <script src="~/js/image-modal.js" asp-append-version="true"></script>
+
+    <script src="~/js/image-modal.js"
+            asp-append-version="true"></script>
+
+    <style>
+
+        /* =========================================================
+           INVENTORY PAGE
+           ========================================================= */
+
+        .inventory-page {
+            width: 100%;
+        }
+
+
+        /* =========================================================
+           TEXTOS
+           ========================================================= */
+
+        .page-title {
+            color: var(--ent-text);
+        }
+
+        .page-subtitle {
+            color: var(--ent-text-muted);
+            font-size: 0.9rem;
+        }
+
+        .section-title {
+            color: var(--ent-text);
+        }
+
+        .section-subtitle {
+            color: var(--ent-text-muted);
+        }
+
+
+        /* =========================================================
+           CARDS
+           ========================================================= */
+
+        .enterprise-card {
+            background-color: var(--ent-surface);
+            border: 1px solid var(--ent-border) !important;
+            border-radius: 0.65rem;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+        }
+
+
+        /* =========================================================
+           FORMULARIOS
+           ========================================================= */
+
+        .enterprise-label {
+            color: var(--ent-text);
+            font-size: 0.82rem;
+            font-weight: 600;
+            margin-bottom: 0.45rem;
+        }
+
+        .enterprise-input {
+            min-height: 42px;
+            background-color: var(--ent-surface);
+            border: 1px solid var(--ent-border);
+            color: var(--ent-text);
+            border-radius: 0.45rem;
+            font-size: 0.9rem;
+        }
+
+        .enterprise-input:focus {
+            border-color: var(--ent-primary);
+            box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.12);
+        }
+
+        .enterprise-input::placeholder {
+            color: var(--ent-text-light);
+        }
+
+        .enterprise-input-icon {
+            background-color: var(--ent-surface-alt);
+            border-color: var(--ent-border);
+            color: var(--ent-text-muted);
+        }
+
+        .enterprise-filter-button {
+            min-height: 42px;
+        }
+
+
+        /* =========================================================
+           TABLA
+           ========================================================= */
+
+        .inventory-table-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--ent-border);
+        }
+
+        .enterprise-table {
+            color: var(--ent-text);
+        }
+
+        .enterprise-table thead {
+            background-color: var(--ent-surface-alt);
+        }
+
+        .enterprise-table thead th {
+            color: var(--ent-text-muted);
+            border-bottom: 1px solid var(--ent-border);
+            border-top: 0;
+            padding: 0.85rem 1rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.045em;
+            white-space: nowrap;
+        }
+
+        .enterprise-table tbody td {
+            border-bottom: 1px solid var(--ent-border);
+            padding: 0.9rem 1rem;
+            vertical-align: middle;
+        }
+
+        .enterprise-table tbody tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .enterprise-table tbody tr {
+            transition: background-color 0.15s ease;
+        }
+
+        .enterprise-table tbody tr:hover {
+            background-color: rgba(241, 245, 249, 0.65);
+        }
+
+
+        /* =========================================================
+           PRODUCTO
+           ========================================================= */
+
+        .product-thumbnail {
+            width: 46px;
+            height: 46px;
+            object-fit: cover;
+            border-radius: 0.5rem;
+            border: 1px solid var(--ent-border);
+            cursor: pointer;
+            background-color: var(--ent-surface-alt);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .product-thumbnail:hover {
+            transform: scale(1.04);
+            box-shadow: 0 3px 8px rgba(15, 23, 42, 0.12);
+        }
+
+        .product-thumbnail-empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--ent-text-light);
+            cursor: default;
+        }
+
+        .product-thumbnail-empty:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .product-name {
+            color: var(--ent-text);
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.15rem;
+        }
+
+        .product-category {
+            color: var(--ent-text-light);
+            font-size: 0.78rem;
+        }
+
+        .product-price {
+            color: var(--ent-text);
+            font-size: 0.9rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .stock-value {
+            color: var(--ent-text);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+
+        /* =========================================================
+           ESTADOS
+           ========================================================= */
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.65rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-success {
+            background-color: rgba(22, 163, 74, 0.10);
+            color: var(--ent-success);
+        }
+
+        .status-success .status-dot {
+            background-color: var(--ent-success);
+        }
+
+        .status-warning {
+            background-color: rgba(217, 119, 6, 0.10);
+            color: var(--ent-warning);
+        }
+
+        .status-warning .status-dot {
+            background-color: var(--ent-warning);
+        }
+
+        .status-danger {
+            background-color: rgba(220, 38, 38, 0.10);
+            color: var(--ent-danger);
+        }
+
+        .status-danger .status-dot {
+            background-color: var(--ent-danger);
+        }
+
+
+        /* =========================================================
+           ACCIONES
+           ========================================================= */
+
+        .action-button {
+            width: 34px;
+            height: 34px;
+            padding: 0;
+            border: 1px solid transparent;
+            border-radius: 0.4rem;
+            background-color: transparent;
+            color: var(--ent-text-muted);
+            transition: all 0.15s ease;
+        }
+
+        .action-button:hover,
+        .action-button:focus {
+            background-color: var(--ent-surface-alt);
+            border-color: var(--ent-border);
+            color: var(--ent-text);
+        }
+
+        .enterprise-dropdown {
+            min-width: 190px;
+            padding: 0.4rem;
+            background-color: var(--ent-surface);
+            border: 1px solid var(--ent-border);
+            border-radius: 0.55rem;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+        }
+
+        .enterprise-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            border-radius: 0.35rem;
+            padding: 0.55rem 0.7rem;
+            font-size: 0.85rem;
+            color: var(--ent-text-muted);
+        }
+
+        .enterprise-dropdown-item:hover {
+            background-color: var(--ent-surface-alt);
+            color: var(--ent-text);
+        }
+
+        .action-icon {
+            width: 22px;
+            text-align: center;
+        }
+
+        .action-info {
+            color: var(--ent-info);
+        }
+
+        .action-warning {
+            color: var(--ent-warning);
+        }
+
+        .action-danger {
+            color: var(--ent-danger);
+        }
+
+
+        /* =========================================================
+           EMPTY STATE
+           ========================================================= */
+
+        .empty-state {
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+
+        .empty-state-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: var(--ent-surface-alt);
+            font-size: 1.7rem;
+        }
+
+        .empty-state-title {
+            color: var(--ent-text);
+        }
+
+        .empty-state-text {
+            color: var(--ent-text-muted);
+            font-size: 0.9rem;
+        }
+
+
+        /* =========================================================
+           MODAL
+           ========================================================= */
+
+        .enterprise-modal {
+            background-color: var(--ent-surface);
+            border-radius: 0.75rem;
+        }
+
+        .enterprise-modal .modal-title {
+            color: var(--ent-text);
+        }
+
+        .image-preview-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 250px;
+            padding: 1rem;
+            background-color: var(--ent-surface-alt);
+            border: 1px solid var(--ent-border);
+            border-radius: 0.65rem;
+        }
+
+        .image-preview {
+            max-height: 500px;
+            object-fit: contain;
+            border-radius: 0.5rem;
+        }
+
+
+        /* =========================================================
+           RESPONSIVE
+           ========================================================= */
+
+        @@media (max-width: 767.98px) {
+
+            .page-title {
+                font-size: 1.35rem;
+            }
+
+            .enterprise-table thead th {
+                font-size: 0.7rem;
+            }
+
+            .enterprise-table tbody td {
+                padding: 0.75rem;
+            }
+
+            .inventory-table-header {
+                padding: 1rem;
+            }
+
+            .empty-state {
+                padding: 3rem 1rem;
+            }
+
+        }
+
+    </style>
 }

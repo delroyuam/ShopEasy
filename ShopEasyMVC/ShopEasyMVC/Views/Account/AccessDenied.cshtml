@@ -2,6 +2,56 @@
     ViewData["Title"] = "Acceso denegado";
 }
 
-<h1>Acceso denegado</h1>
-<p>No tienes permisos para ver esta página.</p>
-<a asp-controller="Home" asp-action="Index" class="btn btn-secondary">Volver al inicio</a>
+<div class="inventory-page">
+
+    <div class="card enterprise-card mb-4">
+
+        <div class="card-body p-5 text-center access-denied-box">
+
+            <div class="access-denied-icon">
+                🚫
+            </div>
+
+            <h1 class="h4 fw-bold mb-2 page-title">
+                Acceso denegado
+            </h1>
+
+            <p class="mb-4 page-subtitle">
+                No tienes permisos para ver esta página.
+            </p>
+
+            <a asp-controller="Home" asp-action="Index"
+               class="btn btn-primary fw-semibold px-4 rounded-pill">
+                Volver al inicio
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <style>
+
+        .access-denied-box {
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        .access-denied-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: rgba(220, 38, 38, 0.1);
+            font-size: 1.8rem;
+        }
+
+    </style>
+
+}

@@ -4,43 +4,245 @@
     ViewData["Title"] = "Usuarios";
 }
 
-<h1>Usuarios</h1>
+<div class="inventory-page">
 
-<p>
-    <a asp-action="Create" class="btn btn-primary">Crear usuario</a>
-</p>
+    <!-- ENCABEZADO -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
 
-<table class="table table-bordered table-striped">
-    <thead>
-        <tr>
-            <th>Nombre</th>
-            <th>Correo</th>
-            <th>Roles</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>@item.FullName</td>
-                <td>@item.Email</td>
-                <td>
-                    @if (item.UserRoles.Any())
-                    {
-                        @string.Join(", ", item.UserRoles.Select(role => role.Name))
-                    }
-                    else
-                    {
-                        <span class="text-muted">Sin rol</span>
-                    }
-                </td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm">Editar</a>
-                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm">Detalles</a>
-                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm">Eliminar</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <h1 class="h3 mb-0 fw-bold page-title">
+                    Usuarios
+                </h1>
+            </div>
+
+            <p class="mb-0 page-subtitle">
+                Administración de usuarios registrados en el sistema.
+            </p>
+        </div>
+
+        <a asp-action="Create"
+           class="btn btn-primary shadow-sm px-4 rounded-pill fw-semibold">
+            <span class="me-1">+</span>
+            Crear Usuario
+        </a>
+
+    </div>
+
+
+    <!-- TABLA PRINCIPAL -->
+    <div class="card enterprise-card">
+
+        <div class="card-body p-0">
+
+            @if (!Model.Any())
+            {
+                <!-- SIN RESULTADOS -->
+                <div class="empty-state">
+
+                    <div class="empty-state-icon">
+                        👥
+                    </div>
+
+                    <h5 class="fw-bold empty-state-title">
+                        No se encontraron usuarios
+                    </h5>
+
+                    <p class="empty-state-text mb-3">
+                        Aún no existen usuarios registrados en el sistema.
+                    </p>
+
+                    <a asp-action="Create"
+                       class="btn btn-outline-secondary rounded-pill px-4">
+                        Crear usuario
+                    </a>
+
+                </div>
+            }
+            else
+            {
+                <!-- INFORMACIÓN DE RESULTADOS -->
+                <div class="inventory-table-header">
+
+                    <div>
+                        <h2 class="h6 fw-bold mb-1 section-title">
+                            Usuarios
+                        </h2>
+
+                        <p class="small mb-0 section-subtitle">
+                            @Model.Count() usuario(s) encontrado(s).
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <!-- TABLA -->
+                <div class="table-responsive">
+
+                    <table class="table enterprise-table align-middle mb-0">
+
+                        <thead>
+
+                            <tr>
+
+                                <th class="ps-4">
+                                    Nombre
+                                </th>
+
+                                <th>
+                                    Correo
+                                </th>
+
+                                <th>
+                                    Roles
+                                </th>
+
+                                <th class="text-end pe-4">
+                                    Acciones
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+
+                                    <!-- NOMBRE -->
+                                    <td class="ps-4">
+
+                                        <div class="product-name">
+                                            @item.FullName
+                                        </div>
+
+                                    </td>
+
+
+                                    <!-- CORREO -->
+                                    <td>
+
+                                        <span class="product-category">
+                                            @item.Email
+                                        </span>
+
+                                    </td>
+
+
+                                    <!-- ROLES -->
+                                    <td>
+
+                                        @if (item.UserRoles.Any())
+                                        {
+                                            <span class="stock-value">
+                                                @string.Join(", ", item.UserRoles.Select(role => role.Name))
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="product-category">
+                                                Sin rol
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ACCIONES -->
+                                    <td class="text-end pe-4">
+
+                                        <div class="dropdown">
+
+                                            <button class="btn btn-sm action-button"
+                                                    type="button"
+                                                    data-bs-toggle="dropdown"
+                                                    aria-expanded="false"
+                                                    aria-label="Acciones para @item.FullName">
+
+                                                <span>•••</span>
+
+                                            </button>
+
+
+                                            <ul class="dropdown-menu dropdown-menu-end enterprise-dropdown">
+
+                                                <li>
+
+                                                    <a class="dropdown-item enterprise-dropdown-item"
+                                                       asp-action="Details"
+                                                       asp-route-id="@item.Id">
+
+                                                        <span class="action-icon action-info">
+                                                            📄
+                                                        </span>
+
+                                                        Ver detalles
+
+                                                    </a>
+
+                                                </li>
+
+
+                                                <li>
+
+                                                    <a class="dropdown-item enterprise-dropdown-item"
+                                                       asp-action="Edit"
+                                                       asp-route-id="@item.Id">
+
+                                                        <span class="action-icon action-warning">
+                                                            ✏️
+                                                        </span>
+
+                                                        Editar
+
+                                                    </a>
+
+                                                </li>
+
+
+                                                <li>
+                                                    <hr class="dropdown-divider" />
+                                                </li>
+
+
+                                                <li>
+
+                                                    <a class="dropdown-item enterprise-dropdown-item text-danger"
+                                                       asp-action="Delete"
+                                                       asp-route-id="@item.Id">
+
+                                                        <span class="action-icon action-danger">
+                                                            🗑️
+                                                        </span>
+
+                                                        Eliminar
+
+                                                    </a>
+
+                                                </li>
+
+                                            </ul>
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>

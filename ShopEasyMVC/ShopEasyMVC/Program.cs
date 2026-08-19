@@ -3,6 +3,15 @@ using Microsoft.EntityFrameworkCore;
 using ShopEasyMVC.Data;
 using ShopEasyMVC.Services;
 
+using System.Globalization;
+
+var cultureInfo = new CultureInfo("es-CR");
+cultureInfo.NumberFormat.NumberDecimalSeparator = ".";
+cultureInfo.NumberFormat.CurrencyDecimalSeparator = ".";
+
+CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
+CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.

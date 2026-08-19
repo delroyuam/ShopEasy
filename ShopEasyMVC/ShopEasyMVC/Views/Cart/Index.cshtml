@@ -5,56 +5,262 @@
     ViewData["Title"] = "Carrito de compras";
 }
 
-<h1>Carrito de compras</h1>
+<div class="inventory-page">
 
-@if (TempData["CartMessage"] is string message)
-{
-    <div class="alert alert-warning">@message</div>
-}
+    <!-- ENCABEZADO -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
 
-@if (!Model.Any())
-{
-    <p>Tu carrito está vacío.</p>
-    <a asp-controller="Products" asp-action="Index" class="btn btn-secondary">Ver productos</a>
-}
-else
-{
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Producto</th>
-                <th>Precio</th>
-                <th>Cantidad</th>
-                <th>Subtotal</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var line in Model)
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <h1 class="h3 mb-0 fw-bold page-title">
+                    Carrito de Compras
+                </h1>
+            </div>
+
+            <p class="mb-0 page-subtitle">
+                Revisa y ajusta los productos antes de finalizar tu compra.
+            </p>
+        </div>
+
+        <a asp-controller="Products" asp-action="Index"
+           class="btn btn-outline-secondary shadow-sm px-4 rounded-pill fw-semibold">
+            Ver productos
+        </a>
+
+    </div>
+
+
+    @if (TempData["CartMessage"] is string message)
+    {
+        <div class="alert alert-warning cart-alert mb-4">
+            @message
+        </div>
+    }
+
+
+    <!-- CONTENIDO -->
+    <div class="card enterprise-card">
+
+        <div class="card-body p-0">
+
+            @if (!Model.Any())
             {
-                <tr>
-                    <td>@line.ProductName</td>
-                    <td>@line.UnitPrice.ToColones()</td>
-                    <td>
-                        <form asp-action="UpdateQuantity" method="post" class="d-flex gap-2">
-                            <input type="hidden" name="productId" value="@line.ProductId" />
-                            <input type="number" name="quantity" value="@line.Quantity" min="0" class="form-control form-control-sm" style="width:80px" />
-                            <button type="submit" class="btn btn-sm btn-outline-primary">Actualizar</button>
-                        </form>
-                    </td>
-                    <td>@line.Subtotal.ToColones()</td>
-                    <td>
-                        <form asp-action="Remove" method="post">
-                            <input type="hidden" name="productId" value="@line.ProductId" />
-                            <button type="submit" class="btn btn-sm btn-outline-danger">Quitar</button>
-                        </form>
-                    </td>
-                </tr>
+                <!-- SIN RESULTADOS -->
+                <div class="empty-state">
+
+                    <div class="empty-state-icon">
+                        🛒
+                    </div>
+
+                    <h5 class="fw-bold empty-state-title">
+                        Tu carrito está vacío
+                    </h5>
+
+                    <p class="empty-state-text mb-3">
+                        Aún no has agregado productos a tu carrito de compras.
+                    </p>
+
+                    <a asp-controller="Products" asp-action="Index"
+                       class="btn btn-outline-secondary rounded-pill px-4">
+                        Ver productos
+                    </a>
+
+                </div>
             }
-        </tbody>
-    </table>
+            else
+            {
+                <!-- INFORMACIÓN DE RESULTADOS -->
+                <div class="inventory-table-header">
 
-    <p><strong>Total: @Model.Sum(l => l.Subtotal).ToColones()</strong></p>
+                    <div>
+                        <h2 class="h6 fw-bold mb-1 section-title">
+                            Productos en tu carrito
+                        </h2>
 
-    <a asp-controller="Checkout" asp-action="Index" class="btn btn-primary">Ir a pagar</a>
+                        <p class="small mb-0 section-subtitle">
+                            @Model.Count() producto(s) agregado(s).
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <!-- TABLA -->
+                <div class="table-responsive">
+
+                    <table class="table enterprise-table align-middle mb-0">
+
+                        <thead>
+
+                            <tr>
+
+                                <th class="ps-4">
+                                    Producto
+                                </th>
+
+                                <th>
+                                    Precio
+                                </th>
+
+                                <th>
+                                    Cantidad
+                                </th>
+
+                                <th>
+                                    Subtotal
+                                </th>
+
+                                <th class="text-end pe-4">
+                                    Acciones
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            @foreach (var line in Model)
+                            {
+                                <tr>
+
+                                    <!-- PRODUCTO -->
+                                    <td class="ps-4">
+
+                                        <div class="product-name">
+                                            @line.ProductName
+                                        </div>
+
+                                    </td>
+
+
+                                    <!-- PRECIO -->
+                                    <td>
+
+                                        <span class="product-price">
+                                            @line.UnitPrice.ToColones()
+                                        </span>
+
+                                    </td>
+
+
+                                    <!-- CANTIDAD -->
+                                    <td>
+
+                                        <form asp-action="UpdateQuantity" method="post" class="d-flex gap-2 align-items-center">
+
+                                            <input type="hidden" name="productId" value="@line.ProductId" />
+
+                                            <input type="number"
+                                                   name="quantity"
+                                                   value="@line.Quantity"
+                                                   min="0"
+                                                   class="form-control enterprise-input form-control-sm"
+                                                   style="width:80px" />
+
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary fw-semibold rounded-pill">
+                                                Actualizar
+                                            </button>
+
+                                        </form>
+
+                                    </td>
+
+
+                                    <!-- SUBTOTAL -->
+                                    <td>
+
+                                        <span class="product-price">
+                                            @line.Subtotal.ToColones()
+                                        </span>
+
+                                    </td>
+
+
+                                    <!-- ACCIONES -->
+                                    <td class="text-end pe-4">
+
+                                        <form asp-action="Remove" method="post" class="d-inline">
+
+                                            <input type="hidden" name="productId" value="@line.ProductId" />
+
+                                            <button type="submit" class="btn btn-sm btn-outline-danger fw-semibold rounded-pill">
+                                                Quitar
+                                            </button>
+
+                                        </form>
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+
+                <!-- TOTAL Y CHECKOUT -->
+                <div class="cart-summary-box">
+
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
+
+                        <div>
+                            <div class="enterprise-label mb-1">
+                                Total a pagar
+                            </div>
+                            <div class="cart-total-amount">
+                                @Model.Sum(l => l.Subtotal).ToColones()
+                            </div>
+                        </div>
+
+                        <a asp-controller="Checkout" asp-action="Index"
+                           class="btn btn-primary fw-semibold px-4 rounded-pill">
+                            Ir a pagar
+                        </a>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <style>
+
+        .cart-alert {
+            border-radius: 0.6rem;
+            border: 1px solid rgba(217, 119, 6, 0.2);
+        }
+
+        .cart-summary-box {
+            padding: 1.25rem 1.5rem;
+            border-top: 1px solid var(--ent-border);
+            background-color: var(--ent-surface-alt);
+        }
+
+        .cart-total-amount {
+            color: var(--ent-text);
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        @@media (max-width: 767.98px) {
+
+            .cart-summary-box {
+                padding: 1rem;
+            }
+        }
+
+    </style>
+
 }

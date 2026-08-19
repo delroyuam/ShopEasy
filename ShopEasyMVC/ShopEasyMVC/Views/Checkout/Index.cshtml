@@ -6,48 +6,209 @@
     ViewData["Title"] = "Checkout";
 }
 
-<h1>Confirmar pedido</h1>
+<div class="inventory-page">
 
-@if (!ViewData.ModelState.IsValid)
-{
-    <div class="alert alert-danger" asp-validation-summary="All"></div>
-}
+    <!-- ENCABEZADO -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Producto</th>
-            <th>Cantidad</th>
-            <th>Subtotal</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var line in Model)
-        {
-            <tr>
-                <td>@line.ProductName</td>
-                <td>@line.Quantity</td>
-                <td>@line.Subtotal.ToColones()</td>
-            </tr>
-        }
-    </tbody>
-</table>
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <h1 class="h3 mb-0 fw-bold page-title">
+                    Confirmar Pedido
+                </h1>
+            </div>
 
-<p><strong>Total: @Model.Sum(l => l.Subtotal).ToColones()</strong></p>
+            <p class="mb-0 page-subtitle">
+                Revisa tu pedido y completa los datos de envío y pago.
+            </p>
+        </div>
 
-<form asp-action="Confirm" method="post">
-    <div class="mb-3">
-        <label class="form-label">Dirección de envío</label>
-        <input type="text" name="shippingAddress" class="form-control" required />
+        <a asp-controller="Cart" asp-action="Index"
+           class="btn btn-outline-secondary shadow-sm px-4 rounded-pill fw-semibold">
+            Volver al carrito
+        </a>
+
     </div>
-    <div class="mb-3">
-        <label class="form-label">Método de pago</label>
-        <select name="paymentMethod" class="form-select">
-            @foreach (var method in Enum.GetValues<PaymentMethod>())
-            {
-                <option value="@method">@method.GetDisplayName()</option>
-            }
-        </select>
+
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger" asp-validation-summary="All"></div>
+    }
+
+
+    <!-- RESUMEN DEL PEDIDO -->
+    <div class="card enterprise-card mb-4">
+
+        <div class="card-body p-0">
+
+            <div class="inventory-table-header">
+
+                <div>
+                    <h2 class="h6 fw-bold mb-1 section-title">
+                        Resumen del pedido
+                    </h2>
+
+                    <p class="small mb-0 section-subtitle">
+                        @Model.Count() producto(s) en tu orden.
+                    </p>
+                </div>
+
+            </div>
+
+            <div class="table-responsive">
+
+                <table class="table enterprise-table align-middle mb-0">
+
+                    <thead>
+
+                        <tr>
+
+                            <th class="ps-4">
+                                Producto
+                            </th>
+
+                            <th>
+                                Cantidad
+                            </th>
+
+                            <th class="text-end pe-4">
+                                Subtotal
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        @foreach (var line in Model)
+                        {
+                            <tr>
+
+                                <td class="ps-4">
+                                    <div class="product-name">
+                                        @line.ProductName
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <span class="stock-value">
+                                        @line.Quantity
+                                    </span>
+                                </td>
+
+                                <td class="text-end pe-4">
+                                    <span class="product-price">
+                                        @line.Subtotal.ToColones()
+                                    </span>
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+            <div class="cart-summary-box">
+
+                <div class="d-flex justify-content-between align-items-center">
+
+                    <div class="enterprise-label mb-0">
+                        Total a pagar
+                    </div>
+
+                    <div class="cart-total-amount">
+                        @Model.Sum(l => l.Subtotal).ToColones()
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
-    <button type="submit" class="btn btn-primary">Confirmar pedido</button>
-</form>
+
+
+    <!-- DATOS DE ENVÍO Y PAGO -->
+    <div class="card enterprise-card mb-4">
+
+        <div class="card-body p-4">
+
+            <div class="d-flex align-items-center mb-3">
+
+                <div>
+                    <h2 class="h6 fw-bold mb-1 section-title">
+                        Datos de envío y pago
+                    </h2>
+
+                    <p class="small mb-0 section-subtitle">
+                        Completa la información para finalizar tu compra.
+                    </p>
+                </div>
+
+            </div>
+
+            <form asp-action="Confirm" method="post" class="row g-3">
+
+                <!-- DIRECCIÓN -->
+                <div class="col-12">
+
+                    <label class="form-label enterprise-label">
+                        Dirección de envío
+                    </label>
+
+                    <div class="input-group">
+
+                        <span class="input-group-text enterprise-input-icon">
+                            📍
+                        </span>
+
+                        <input type="text" name="shippingAddress" class="form-control enterprise-input" required />
+
+                    </div>
+
+                </div>
+
+
+                <!-- MÉTODO DE PAGO -->
+                <div class="col-12 col-md-6">
+
+                    <label class="form-label enterprise-label">
+                        Método de pago
+                    </label>
+
+                    <select name="paymentMethod" class="form-select enterprise-input">
+
+                        @foreach (var method in Enum.GetValues<PaymentMethod>())
+                        {
+                            <option value="@method">@method.GetDisplayName()</option>
+                        }
+
+                    </select>
+
+                </div>
+
+
+                <!-- BOTÓN -->
+                <div class="col-12 mt-4">
+
+                    <button type="submit" class="btn btn-primary fw-semibold px-4 rounded-pill">
+                        Confirmar pedido
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>

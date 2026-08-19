@@ -7,87 +7,300 @@
     var currentFilter = statusFilter?.FirstOrDefault(s => s.Selected)?.Value;
 }
 
-<h1>Gestión de Pedidos</h1>
-<p class="text-muted">Panel de administración de pedidos (RF-009).</p>
+<div class="inventory-page">
 
-@if (TempData["StatusMessage"] is string statusMessage)
-{
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        @statusMessage
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-    </div>
-}
+    <!-- ENCABEZADO -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
 
-<div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
-    <form asp-action="Index" method="get" class="d-flex align-items-end gap-2">
         <div>
-            <label for="status" class="form-label mb-1">Filtrar por estado</label>
-            <select name="status" id="status" class="form-select" asp-items="statusFilter">
-                <option value="">Todos los estados</option>
-            </select>
-        </div>
-        <button type="submit" class="btn btn-outline-primary">Filtrar</button>
-        <a asp-action="Index" class="btn btn-outline-secondary">Limpiar</a>
-    </form>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <h1 class="h3 mb-0 fw-bold page-title">
+                    Gestión de Pedidos
+                </h1>
+            </div>
 
-    <a asp-action="Create" class="btn btn-primary">Crear orden</a>
+            <p class="mb-0 page-subtitle">
+                Panel de administración de pedidos (RF-009).
+            </p>
+        </div>
+
+        <a asp-action="Create"
+           class="btn btn-primary shadow-sm px-4 rounded-pill fw-semibold">
+            <span class="me-1">+</span>
+            Crear Orden
+        </a>
+
+    </div>
+
+
+    @if (TempData["StatusMessage"] is string statusMessage)
+    {
+        <div class="alert alert-success alert-dismissible fade show cart-alert mb-4" role="alert">
+            @statusMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+        </div>
+    }
+
+
+    <!-- FILTROS -->
+    <div class="card enterprise-card mb-4">
+
+        <div class="card-body p-4">
+
+            <div class="d-flex align-items-center mb-3">
+
+                <div>
+                    <h2 class="h6 fw-bold mb-1 section-title">
+                        Filtros de búsqueda
+                    </h2>
+
+                    <p class="small mb-0 section-subtitle">
+                        Filtra los pedidos por su estado actual.
+                    </p>
+                </div>
+
+            </div>
+
+            <form asp-action="Index" method="get" class="row g-3 align-items-end">
+
+                <div class="col-12 col-md-4">
+
+                    <label for="status" class="form-label enterprise-label">
+                        Filtrar por estado
+                    </label>
+
+                    <select name="status" id="status" class="form-select enterprise-input" asp-items="statusFilter">
+                        <option value="">Todos los estados</option>
+                    </select>
+
+                </div>
+
+                <div class="col-12 col-md-2">
+                    <button type="submit" class="btn btn-primary w-100 fw-semibold enterprise-filter-button">
+                        Filtrar
+                    </button>
+                </div>
+
+                <div class="col-12 col-md-2">
+                    <a asp-action="Index" class="btn btn-outline-secondary w-100 fw-semibold enterprise-filter-button d-flex align-items-center justify-content-center">
+                        Limpiar
+                    </a>
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- TABLA PRINCIPAL -->
+    <div class="card enterprise-card">
+
+        <div class="card-body p-0">
+
+            @if (!Model.Any())
+            {
+                <!-- SIN RESULTADOS -->
+                <div class="empty-state">
+
+                    <div class="empty-state-icon">
+                        📋
+                    </div>
+
+                    <h5 class="fw-bold empty-state-title">
+                        No hay pedidos
+                    </h5>
+
+                    <p class="empty-state-text mb-3">
+                        No hay pedidos que coincidan con el filtro seleccionado.
+                    </p>
+
+                    <a asp-action="Index"
+                       class="btn btn-outline-secondary rounded-pill px-4">
+                        Limpiar filtros
+                    </a>
+
+                </div>
+            }
+            else
+            {
+                <!-- INFORMACIÓN DE RESULTADOS -->
+                <div class="inventory-table-header">
+
+                    <div>
+                        <h2 class="h6 fw-bold mb-1 section-title">
+                            Pedidos
+                        </h2>
+
+                        <p class="small mb-0 section-subtitle">
+                            @Model.Count() pedido(s) encontrado(s).
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <!-- TABLA -->
+                <div class="table-responsive">
+
+                    <table class="table enterprise-table align-middle mb-0">
+
+                        <thead>
+
+                            <tr>
+
+                                <th class="ps-4">Número</th>
+                                <th>Total</th>
+                                <th>Estado</th>
+                                <th>Usuario</th>
+                                <th>Fecha</th>
+                                <th>Cambiar estado</th>
+                                <th class="text-end pe-4">Acciones</th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+
+                                    <td class="ps-4">
+                                        <div class="product-name">
+                                            @item.OrderNumber
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <span class="product-price">
+                                            @item.TotalAmount.ToColones()
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <span class="badge @item.Status.ToBadgeClass()">
+                                            @item.Status.GetDisplayName()
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <span class="product-category">
+                                            @item.User.FullName
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <span class="stock-value">
+                                            @item.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <form asp-action="UpdateStatus" method="post" class="d-flex gap-1">
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <input type="hidden" name="filter" value="@currentFilter" />
+                                            <select name="status" class="form-select enterprise-input form-select-sm">
+                                                @foreach (var option in Enum.GetValues<ShopEasyMVC.Models.OrderStatus>())
+                                                {
+                                                    if (option == item.Status)
+                                                    {
+                                                        <option value="@option" selected>@option.GetDisplayName()</option>
+                                                    }
+                                                    else
+                                                    {
+                                                        <option value="@option">@option.GetDisplayName()</option>
+                                                    }
+                                                }
+                                            </select>
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary fw-semibold rounded-pill">Guardar</button>
+                                        </form>
+                                    </td>
+
+                                    <td class="text-end pe-4">
+
+                                        <div class="dropdown">
+
+                                            <button class="btn btn-sm action-button"
+                                                    type="button"
+                                                    data-bs-toggle="dropdown"
+                                                    aria-expanded="false"
+                                                    aria-label="Acciones">
+
+                                                <span>•••</span>
+
+                                            </button>
+
+
+                                            <ul class="dropdown-menu dropdown-menu-end enterprise-dropdown">
+
+                                                <li>
+                                                    <a class="dropdown-item enterprise-dropdown-item"
+                                                       asp-action="Details"
+                                                       asp-route-id="@item.Id">
+                                                        <span class="action-icon action-info">📄</span>
+                                                        Ver detalles
+                                                    </a>
+                                                </li>
+
+                                                <li>
+                                                    <a class="dropdown-item enterprise-dropdown-item"
+                                                       asp-action="Edit"
+                                                       asp-route-id="@item.Id">
+                                                        <span class="action-icon action-warning">✏️</span>
+                                                        Editar
+                                                    </a>
+                                                </li>
+
+                                                @if (item.Status == ShopEasyMVC.Models.OrderStatus.Cancelled)
+                                                {
+                                                    <li>
+                                                        <hr class="dropdown-divider" />
+                                                    </li>
+
+                                                    <li>
+                                                        <a class="dropdown-item enterprise-dropdown-item text-danger"
+                                                           asp-action="Delete"
+                                                           asp-route-id="@item.Id">
+                                                            <span class="action-icon action-danger">🗑️</span>
+                                                            Eliminar
+                                                        </a>
+                                                    </li>
+                                                }
+
+                                            </ul>
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
 </div>
 
-<table class="table table-bordered table-striped align-middle">
-    <thead>
-        <tr>
-            <th>Número</th>
-            <th>Total</th>
-            <th>Estado</th>
-            <th>Usuario</th>
-            <th>Fecha</th>
-            <th>Cambiar estado</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>@item.OrderNumber</td>
-                <td>@item.TotalAmount.ToColones()</td>
-                <td><span class="badge @item.Status.ToBadgeClass()">@item.Status.GetDisplayName()</span></td>
-                <td>@item.User.FullName</td>
-                <td>@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
-                <td>
-                    <form asp-action="UpdateStatus" method="post" class="d-flex gap-1">
-                        <input type="hidden" name="id" value="@item.Id" />
-                        <input type="hidden" name="filter" value="@currentFilter" />
-                        <select name="status" class="form-select form-select-sm">
-                            @foreach (var option in Enum.GetValues<ShopEasyMVC.Models.OrderStatus>())
-                            {
-                                if (option == item.Status)
-                                {
-                                    <option value="@option" selected>@option.GetDisplayName()</option>
-                                }
-                                else
-                                {
-                                    <option value="@option">@option.GetDisplayName()</option>
-                                }
-                            }
-                        </select>
-                        <button type="submit" class="btn btn-success btn-sm">Guardar</button>
-                    </form>
-                </td>
-                <td>
-                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm">Detalles</a>
-                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm">Editar</a>
-                    @if (item.Status == ShopEasyMVC.Models.OrderStatus.Cancelled)
-                    {
-                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm">Eliminar</a>
-                    }
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+@section Scripts {
 
-@if (!Model.Any())
-{
-    <div class="alert alert-info">No hay pedidos que coincidan con el filtro seleccionado.</div>
+    <style>
+
+        .cart-alert {
+            border-radius: 0.6rem;
+        }
+
+    </style>
+
 }

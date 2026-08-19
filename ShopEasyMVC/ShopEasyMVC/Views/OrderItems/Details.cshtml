@@ -4,26 +4,86 @@
     ViewData["Title"] = "Detalles de producto en orden";
 }
 
-<h1>Detalles de producto en orden</h1>
+<div class="inventory-page">
 
-<hr />
+    <!-- ENCABEZADO -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
 
-<dl class="row">
-    <dt class="col-sm-2">Orden</dt>
-    <dd class="col-sm-10">@Model.Order.OrderNumber</dd>
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <h1 class="h3 mb-0 fw-bold page-title">
+                    Detalles de Producto en Orden
+                </h1>
+            </div>
 
-    <dt class="col-sm-2">Producto</dt>
-    <dd class="col-sm-10">@Model.Product.Name</dd>
+            <p class="mb-0 page-subtitle">
+                Información completa del detalle seleccionado.
+            </p>
+        </div>
 
-    <dt class="col-sm-2">Cantidad</dt>
-    <dd class="col-sm-10">@Html.DisplayFor(model => model.Quantity)</dd>
+        <div class="d-flex gap-2">
 
-    <dt class="col-sm-2">Precio unitario</dt>
-    <dd class="col-sm-10">@Model.UnitPrice.ToColones()</dd>
+            <a asp-action="Edit" asp-route-id="@Model.Id"
+               class="btn btn-primary shadow-sm px-4 rounded-pill fw-semibold">
+                Editar
+            </a>
 
-    <dt class="col-sm-2">Subtotal</dt>
-    <dd class="col-sm-10">@((Model.Quantity * Model.UnitPrice).ToColones())</dd>
-</dl>
+            <a asp-action="Index"
+               class="btn btn-outline-secondary shadow-sm px-4 rounded-pill fw-semibold">
+                Volver
+            </a>
 
-<a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Editar</a>
-<a asp-action="Index" class="btn btn-secondary">Volver</a>
+        </div>
+
+    </div>
+
+
+    <!-- DETALLE -->
+    <div class="card enterprise-card mb-4">
+
+        <div class="card-body p-4">
+
+            <dl class="row product-detail-dl mb-0">
+
+                <dt class="col-sm-3 enterprise-label mb-2">Orden</dt>
+                <dd class="col-sm-9 mb-2">@Model.Order.OrderNumber</dd>
+
+                <dt class="col-sm-3 enterprise-label mb-2">Producto</dt>
+                <dd class="col-sm-9 mb-2">@Model.Product.Name</dd>
+
+                <dt class="col-sm-3 enterprise-label mb-2">Cantidad</dt>
+                <dd class="col-sm-9 mb-2">@Html.DisplayFor(model => model.Quantity)</dd>
+
+                <dt class="col-sm-3 enterprise-label mb-2">Precio unitario</dt>
+                <dd class="col-sm-9 mb-2">@Model.UnitPrice.ToColones()</dd>
+
+                <dt class="col-sm-3 enterprise-label mb-0">Subtotal</dt>
+                <dd class="col-sm-9 mb-0">@((Model.Quantity * Model.UnitPrice).ToColones())</dd>
+
+            </dl>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <style>
+
+        .product-detail-dl dt {
+            color: var(--ent-text-muted);
+            font-size: 0.82rem;
+            font-weight: 600;
+        }
+
+        .product-detail-dl dd {
+            color: var(--ent-text);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+    </style>
+
+}

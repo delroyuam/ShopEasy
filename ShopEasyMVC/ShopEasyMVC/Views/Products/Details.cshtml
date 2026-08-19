@@ -4,77 +4,294 @@
     ViewData["Title"] = "Detalles de producto";
 }
 
-<h1>Detalles de producto</h1>
+<div class="inventory-page">
 
-<hr />
+    <!-- ENCABEZADO -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
 
-<dl class="row">
-    @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
-    {
-        <dt class="col-sm-2">Imagen</dt>
-        <dd class="col-sm-10">
-            <img src="@Model.ImageUrl" alt="@Model.Name"
-                 style="width:140px;height:140px;object-fit:cover;cursor:pointer;"
-                 class="rounded product-thumb"
-                 data-bs-toggle="modal" data-bs-target="#imageModal"
-                 data-img-src="@Model.ImageUrl" data-img-alt="@Model.Name" />
-        </dd>
-    }
-
-    <dt class="col-sm-2">Nombre</dt>
-    <dd class="col-sm-10">@Html.DisplayFor(model => model.Name)</dd>
-
-    <dt class="col-sm-2">Descripción</dt>
-    <dd class="col-sm-10">@Html.DisplayFor(model => model.Description)</dd>
-
-    <dt class="col-sm-2">Precio</dt>
-    <dd class="col-sm-10">@Model.CurrentPrice.ToColones()</dd>
-
-    <dt class="col-sm-2">Stock</dt>
-    <dd class="col-sm-10">@Html.DisplayFor(model => model.Stock)</dd>
-
-    <dt class="col-sm-2">Activo</dt>
-    <dd class="col-sm-10">@(Model.IsActive ? "Sí" : "No")</dd>
-
-    <dt class="col-sm-2">Categoría</dt>
-    <dd class="col-sm-10">@Model.Category.Name</dd>
-
-    <dt class="col-sm-2">Creado</dt>
-    <dd class="col-sm-10">@Html.DisplayFor(model => model.CreatedAtUtc)</dd>
-</dl>
-
-@if (Model.IsActive && Model.Stock > 0)
-{
-    @if (User.Identity?.IsAuthenticated == true)
-    {
-        <form asp-controller="Cart" asp-action="Add" method="post" class="d-inline">
-            <input type="hidden" name="productId" value="@Model.Id" />
-            <input type="number" name="quantity" value="1" min="1" max="@Model.Stock" class="form-control d-inline-block" style="width:80px" />
-            <button type="submit" class="btn btn-success">Agregar al carrito</button>
-        </form>
-    }
-    else
-    {
-        <a asp-controller="Account" asp-action="Login" class="btn btn-success">Inicia sesión para comprar</a>
-    }
-}
-
-@if (User.IsInRole("admin"))
-{
-    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Editar</a>
-}
-<a asp-action="Index" class="btn btn-secondary">Volver</a>
-
-<div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-            <div class="modal-body text-center p-0">
-                <img id="imageModalImg" src="" alt="" class="img-fluid rounded" />
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <h1 class="h3 mb-0 fw-bold page-title">
+                    Detalles de Producto
+                </h1>
             </div>
+
+            <p class="mb-0 page-subtitle">
+                Información completa del producto seleccionado.
+            </p>
         </div>
+
+        <div class="d-flex gap-2">
+
+            @if (User.IsInRole("admin"))
+            {
+                <a asp-action="Edit" asp-route-id="@Model.Id"
+                   class="btn btn-primary shadow-sm px-4 rounded-pill fw-semibold">
+                    Editar
+                </a>
+            }
+
+            <a asp-action="Index"
+               class="btn btn-outline-secondary shadow-sm px-4 rounded-pill fw-semibold">
+                Volver
+            </a>
+
+        </div>
+
     </div>
+
+
+    <!-- DETALLE -->
+    <div class="card enterprise-card mb-4">
+
+        <div class="card-body p-4">
+
+            <div class="row g-4">
+
+                <!-- IMAGEN -->
+                @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
+                {
+                    <div class="col-12 col-md-3">
+
+                        <img src="@Model.ImageUrl"
+                             alt="@Model.Name"
+                             class="product-detail-image"
+                             data-bs-toggle="modal"
+                             data-bs-target="#imageModal"
+                             data-img-src="@Model.ImageUrl"
+                             data-img-alt="@Model.Name"
+                             title="Ver imagen" />
+
+                    </div>
+                }
+
+                <!-- INFORMACIÓN -->
+                <div class="@(!string.IsNullOrWhiteSpace(Model.ImageUrl) ? "col-12 col-md-9" : "col-12")">
+
+                    <div class="d-flex align-items-center gap-2 mb-3">
+
+                        <h2 class="h5 fw-bold mb-0 section-title">
+                            @Model.Name
+                        </h2>
+
+                        @if (Model.Stock == 0)
+                        {
+                            <span class="status-badge status-danger">
+                                <span class="status-dot"></span>
+                                Agotado
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="status-badge status-success">
+                                <span class="status-dot"></span>
+                                Disponible
+                            </span>
+                        }
+
+                        @if (!Model.IsActive)
+                        {
+                            <span class="status-badge status-warning">
+                                <span class="status-dot"></span>
+                                Inactivo
+                            </span>
+                        }
+
+                    </div>
+
+                    <dl class="row product-detail-dl mb-0">
+
+                        <dt class="col-sm-3 enterprise-label mb-2">Descripción</dt>
+                        <dd class="col-sm-9 mb-2">@Html.DisplayFor(model => model.Description)</dd>
+
+                        <dt class="col-sm-3 enterprise-label mb-2">Precio</dt>
+                        <dd class="col-sm-9 mb-2">@Model.CurrentPrice.ToColones()</dd>
+
+                        <dt class="col-sm-3 enterprise-label mb-2">Stock</dt>
+                        <dd class="col-sm-9 mb-2">@Html.DisplayFor(model => model.Stock)</dd>
+
+                        <dt class="col-sm-3 enterprise-label mb-2">Categoría</dt>
+                        <dd class="col-sm-9 mb-2">@Model.Category.Name</dd>
+
+                        <dt class="col-sm-3 enterprise-label mb-0">Creado</dt>
+                        <dd class="col-sm-9 mb-0">@Html.DisplayFor(model => model.CreatedAtUtc)</dd>
+
+                    </dl>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- COMPRA -->
+    @if (Model.IsActive && Model.Stock > 0)
+    {
+        <div class="card enterprise-card mb-4">
+
+            <div class="card-body p-4">
+
+                <div class="d-flex align-items-center mb-3">
+
+                    <div>
+                        <h2 class="h6 fw-bold mb-1 section-title">
+                            Agregar al carrito
+                        </h2>
+
+                        <p class="small mb-0 section-subtitle">
+                            Selecciona la cantidad deseada antes de agregar el producto.
+                        </p>
+                    </div>
+
+                </div>
+
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <form asp-controller="Cart" asp-action="Add" method="post" class="row g-3 align-items-end">
+
+                        <input type="hidden" name="productId" value="@Model.Id" />
+
+                        <div class="col-12 col-md-3">
+
+                            <label class="form-label enterprise-label">
+                                Cantidad
+                            </label>
+
+                            <input type="number"
+                                   name="quantity"
+                                   value="1"
+                                   min="1"
+                                   max="@Model.Stock"
+                                   class="form-control enterprise-input" />
+
+                        </div>
+
+                        <div class="col-12 col-md-3">
+
+                            <button type="submit" class="btn btn-primary w-100 fw-semibold rounded-pill">
+                                Agregar al carrito
+                            </button>
+
+                        </div>
+
+                    </form>
+                }
+                else
+                {
+                    <a asp-controller="Account" asp-action="Login"
+                       class="btn btn-primary fw-semibold px-4 rounded-pill">
+                        Inicia sesión para comprar
+                    </a>
+                }
+
+            </div>
+
+        </div>
+    }
+
 </div>
 
+
+<!-- MODAL DE IMAGEN -->
+<div class="modal fade"
+     id="imageModal"
+     tabindex="-1"
+     aria-labelledby="imageModalLabel"
+     aria-hidden="true">
+
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+
+        <div class="modal-content enterprise-modal">
+
+            <div class="modal-header border-0">
+
+                <h5 class="modal-title fw-bold" id="imageModalLabel">
+                    Imagen del producto
+                </h5>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Cerrar">
+                </button>
+
+            </div>
+
+            <div class="modal-body text-center px-4 pb-4">
+
+                <div class="image-preview-container">
+
+                    <img id="imageModalImg" src="" alt="" class="img-fluid image-preview" />
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
 @section Scripts {
+
     <script src="~/js/image-modal.js" asp-append-version="true"></script>
+
+    <style>
+
+        .product-detail-image {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
+            border-radius: 0.65rem;
+            border: 1px solid var(--ent-border);
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+            .product-detail-image:hover {
+                transform: scale(1.02);
+                box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+            }
+
+        .product-detail-dl dt {
+            color: var(--ent-text-muted);
+            font-size: 0.82rem;
+            font-weight: 600;
+        }
+
+        .product-detail-dl dd {
+            color: var(--ent-text);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .enterprise-modal {
+            background-color: var(--ent-surface);
+            border-radius: 0.75rem;
+        }
+
+        .image-preview-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 250px;
+            padding: 1rem;
+            background-color: var(--ent-surface-alt);
+            border: 1px solid var(--ent-border);
+            border-radius: 0.65rem;
+        }
+
+        .image-preview {
+            max-height: 500px;
+            object-fit: contain;
+            border-radius: 0.5rem;
+        }
+
+    </style>
+
 }

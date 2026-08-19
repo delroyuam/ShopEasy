@@ -2,23 +2,114 @@
     ViewData["Title"] = "Iniciar sesión";
 }
 
-<h1>Iniciar sesión</h1>
+<div class="inventory-page">
 
-@if (!ViewData.ModelState.IsValid)
-{
-    <div class="alert alert-danger" asp-validation-summary="All"></div>
+    <div class="d-flex justify-content-center">
+
+        <div class="auth-card-wrapper">
+
+            <!-- ENCABEZADO -->
+            <div class="text-center mb-4">
+
+                <h1 class="h3 mb-1 fw-bold page-title">
+                    Iniciar sesión
+                </h1>
+
+                <p class="mb-0 page-subtitle">
+                    Ingresa tus credenciales para acceder a tu cuenta.
+                </p>
+
+            </div>
+
+
+            <!-- FORMULARIO -->
+            <div class="card enterprise-card mb-4">
+
+                <div class="card-body p-4">
+
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger" asp-validation-summary="All"></div>
+                    }
+
+                    <form asp-action="Login" method="post" class="row g-3">
+
+                        <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+
+                        <!-- CORREO -->
+                        <div class="col-12">
+
+                            <label class="form-label enterprise-label">
+                                Correo
+                            </label>
+
+                            <div class="input-group">
+
+                                <span class="input-group-text enterprise-input-icon">
+                                    ✉️
+                                </span>
+
+                                <input type="email" name="email" class="form-control enterprise-input" required />
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- CONTRASEÑA -->
+                        <div class="col-12">
+
+                            <label class="form-label enterprise-label">
+                                Contraseña
+                            </label>
+
+                            <div class="input-group">
+
+                                <span class="input-group-text enterprise-input-icon">
+                                    🔒
+                                </span>
+
+                                <input type="password" name="password" class="form-control enterprise-input" required />
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- BOTONES -->
+                        <div class="col-12 d-flex flex-column gap-2 mt-4">
+
+                            <button type="submit" class="btn btn-primary w-100 fw-semibold rounded-pill">
+                                Entrar
+                            </button>
+
+                            <a asp-action="Register" class="btn btn-link text-center fw-semibold">
+                                Crear cuenta
+                            </a>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <style>
+
+        .auth-card-wrapper {
+            width: 100%;
+            max-width: 440px;
+        }
+
+    </style>
+
 }
-
-<form asp-action="Login" method="post" class="col-md-6">
-    <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
-    <div class="mb-3">
-        <label class="form-label">Correo</label>
-        <input type="email" name="email" class="form-control" required />
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Contraseña</label>
-        <input type="password" name="password" class="form-control" required />
-    </div>
-    <button type="submit" class="btn btn-primary">Entrar</button>
-    <a asp-action="Register" class="btn btn-link">Crear cuenta</a>
-</form>

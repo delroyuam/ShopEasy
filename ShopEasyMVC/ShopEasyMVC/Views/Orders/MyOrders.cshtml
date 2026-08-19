@@ -5,35 +5,145 @@
     ViewData["Title"] = "Mis pedidos";
 }
 
-<h1>Mis pedidos</h1>
+<div class="inventory-page">
 
-@if (!Model.Any())
-{
-    <div class="alert alert-info">Todavía no tienes pedidos.</div>
-}
-else
-{
-    <table class="table table-bordered table-striped align-middle">
-        <thead>
-            <tr>
-                <th>Número</th>
-                <th>Total</th>
-                <th>Estado</th>
-                <th>Fecha</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model)
+    <!-- ENCABEZADO -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <h1 class="h3 mb-0 fw-bold page-title">
+                    Mis Pedidos
+                </h1>
+            </div>
+
+            <p class="mb-0 page-subtitle">
+                Consulta el historial y estado de tus pedidos.
+            </p>
+        </div>
+
+        <a asp-controller="Products" asp-action="Index"
+           class="btn btn-outline-secondary shadow-sm px-4 rounded-pill fw-semibold">
+            Ver productos
+        </a>
+
+    </div>
+
+
+    <!-- TABLA PRINCIPAL -->
+    <div class="card enterprise-card">
+
+        <div class="card-body p-0">
+
+            @if (!Model.Any())
             {
-                <tr>
-                    <td>@item.OrderNumber</td>
-                    <td>@item.TotalAmount.ToColones()</td>
-                    <td><span class="badge @item.Status.ToBadgeClass()">@item.Status.GetDisplayName()</span></td>
-                    <td>@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
-                    <td><a asp-action="MyOrderDetails" asp-route-id="@item.Id" class="btn btn-info btn-sm">Detalles</a></td>
-                </tr>
+                <!-- SIN RESULTADOS -->
+                <div class="empty-state">
+
+                    <div class="empty-state-icon">
+                        📦
+                    </div>
+
+                    <h5 class="fw-bold empty-state-title">
+                        Todavía no tienes pedidos
+                    </h5>
+
+                    <p class="empty-state-text mb-3">
+                        Cuando realices una compra, tus pedidos aparecerán aquí.
+                    </p>
+
+                    <a asp-controller="Products" asp-action="Index"
+                       class="btn btn-outline-secondary rounded-pill px-4">
+                        Ver productos
+                    </a>
+
+                </div>
             }
-        </tbody>
-    </table>
-}
+            else
+            {
+                <!-- INFORMACIÓN DE RESULTADOS -->
+                <div class="inventory-table-header">
+
+                    <div>
+                        <h2 class="h6 fw-bold mb-1 section-title">
+                            Pedidos
+                        </h2>
+
+                        <p class="small mb-0 section-subtitle">
+                            @Model.Count() pedido(s) realizado(s).
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <!-- TABLA -->
+                <div class="table-responsive">
+
+                    <table class="table enterprise-table align-middle mb-0">
+
+                        <thead>
+
+                            <tr>
+                                <th class="ps-4">Número</th>
+                                <th>Total</th>
+                                <th>Estado</th>
+                                <th>Fecha</th>
+                                <th class="text-end pe-4">Acciones</th>
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+
+                                    <td class="ps-4">
+                                        <div class="product-name">
+                                            @item.OrderNumber
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <span class="product-price">
+                                            @item.TotalAmount.ToColones()
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <span class="badge @item.Status.ToBadgeClass()">
+                                            @item.Status.GetDisplayName()
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <span class="stock-value">
+                                            @item.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                        </span>
+                                    </td>
+
+                                    <td class="text-end pe-4">
+                                        <a asp-action="MyOrderDetails" asp-route-id="@item.Id"
+                                           class="btn btn-sm btn-outline-secondary fw-semibold rounded-pill">
+                                            Detalles
+                                        </a>
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>

@@ -5,18 +5,201 @@
     ViewData["Title"] = "Pedido confirmado";
 }
 
-<h1>¡Pedido confirmado!</h1>
+<div class="inventory-page">
 
-<p>Número de orden: <strong>@Model.OrderNumber</strong></p>
-<p>Total: <strong>@Model.TotalAmount.ToColones()</strong></p>
-<p>Dirección de envío: @Model.ShippingAddress</p>
-<p>Método de pago: @Model.PaymentMethod.GetDisplayName()</p>
+    <div class="d-flex justify-content-center">
 
-<ul>
-    @foreach (var item in Model.OrderItems)
-    {
-        <li>@item.Product.Name x @item.Quantity - @(item.UnitPrice * item.Quantity).ToColones()</li>
-    }
-</ul>
+        <div class="order-confirm-wrapper">
 
-<a asp-controller="Orders" asp-action="MyOrders" class="btn btn-secondary">Ver mis pedidos</a>
+            <!-- ENCABEZADO -->
+            <div class="card enterprise-card mb-4">
+
+                <div class="card-body p-4 text-center order-success-box">
+
+                    <div class="order-success-icon">
+                        ✅
+                    </div>
+
+                    <h1 class="h4 fw-bold mb-1 page-title">
+                        ¡Pedido confirmado!
+                    </h1>
+
+                    <p class="mb-0 page-subtitle">
+                        Gracias por tu compra. Hemos recibido tu pedido correctamente.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- DETALLE DEL PEDIDO -->
+            <div class="card enterprise-card mb-4">
+
+                <div class="card-body p-4">
+
+                    <div class="d-flex align-items-center mb-3">
+
+                        <div>
+                            <h2 class="h6 fw-bold mb-1 section-title">
+                                Información del pedido
+                            </h2>
+
+                            <p class="small mb-0 section-subtitle">
+                                Detalles de tu orden y método de pago.
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <div class="order-detail-box mb-4">
+
+                        <dl class="row mb-0">
+
+                            <dt class="col-sm-4 enterprise-label mb-2">Número de orden</dt>
+                            <dd class="col-sm-8 mb-2">@Model.OrderNumber</dd>
+
+                            <dt class="col-sm-4 enterprise-label mb-2">Total</dt>
+                            <dd class="col-sm-8 mb-2">@Model.TotalAmount.ToColones()</dd>
+
+                            <dt class="col-sm-4 enterprise-label mb-2">Dirección de envío</dt>
+                            <dd class="col-sm-8 mb-2">@Model.ShippingAddress</dd>
+
+                            <dt class="col-sm-4 enterprise-label mb-0">Método de pago</dt>
+                            <dd class="col-sm-8 mb-0">@Model.PaymentMethod.GetDisplayName()</dd>
+
+                        </dl>
+
+                    </div>
+
+                    <h2 class="h6 fw-bold mb-3 section-title">
+                        Productos
+                    </h2>
+
+                    <div class="table-responsive">
+
+                        <table class="table enterprise-table align-middle mb-0">
+
+                            <thead>
+
+                                <tr>
+
+                                    <th class="ps-4">
+                                        Producto
+                                    </th>
+
+                                    <th>
+                                        Cantidad
+                                    </th>
+
+                                    <th class="text-end pe-4">
+                                        Subtotal
+                                    </th>
+
+                                </tr>
+
+                            </thead>
+
+
+                            <tbody>
+
+                                @foreach (var item in Model.OrderItems)
+                                {
+                                    <tr>
+
+                                        <td class="ps-4">
+                                            <div class="product-name">
+                                                @item.Product.Name
+                                            </div>
+                                        </td>
+
+                                        <td>
+                                            <span class="stock-value">
+                                                @item.Quantity
+                                            </span>
+                                        </td>
+
+                                        <td class="text-end pe-4">
+                                            <span class="product-price">
+                                                @((item.UnitPrice * item.Quantity).ToColones())
+                                            </span>
+                                        </td>
+
+                                    </tr>
+                                }
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- BOTÓN -->
+            <div class="text-center">
+
+                <a asp-controller="Orders" asp-action="MyOrders"
+                   class="btn btn-primary fw-semibold px-4 rounded-pill">
+                    Ver mis pedidos
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <style>
+
+        .order-confirm-wrapper {
+            width: 100%;
+            max-width: 640px;
+        }
+
+        .order-success-box {
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        .order-success-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: rgba(22, 163, 74, 0.1);
+            font-size: 1.8rem;
+        }
+
+        .order-detail-box {
+            padding: 1.25rem;
+            background-color: var(--ent-surface-alt);
+            border: 1px solid var(--ent-border);
+            border-radius: 0.6rem;
+        }
+
+            .order-detail-box dt {
+                color: var(--ent-text-muted);
+                font-size: 0.82rem;
+                font-weight: 600;
+            }
+
+            .order-detail-box dd {
+                color: var(--ent-text);
+                font-size: 0.9rem;
+                font-weight: 600;
+            }
+
+    </style>
+
+}

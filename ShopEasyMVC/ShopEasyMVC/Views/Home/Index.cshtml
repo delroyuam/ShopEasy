@@ -2,7 +2,43 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="inventory-page">
+
+    <div class="d-flex justify-content-center">
+
+        <div class="home-hero-box text-center">
+
+            <h1 class="display-6 fw-bold mb-3 page-title">
+                Bienvenido
+            </h1>
+
+            
+
+        </div>
+
+    </div>
+
 </div>
+
+@section Scripts {
+
+    <style>
+
+        .home-hero-box {
+            max-width: 560px;
+            padding: 3rem 2rem;
+        }
+
+        .home-hero-link {
+            color: var(--ent-primary);
+            font-weight: 600;
+            text-decoration: underline;
+        }
+
+            .home-hero-link:hover {
+                color: var(--ent-primary-dark);
+            }
+
+    </style>
+
+}
