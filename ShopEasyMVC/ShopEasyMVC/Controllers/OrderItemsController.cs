@@ -186,22 +186,27 @@ namespace ShopEasyMVC.Controllers
         {
             var orderItem = await _context.OrderItems
                 .Include(oi => oi.Order)
+                .Include(oi => oi.Product)
                 .FirstOrDefaultAsync(oi => oi.Id == id);
 
-            if (orderItem is not null)
+            if (orderItem is null)
             {
-                if (orderItem.Order is null || orderItem.Order.Status != OrderStatus.Cancelled)
-                {
-                    var product = await _context.Products.FindAsync(orderItem.ProductId);
-                    if (product is not null)
-                    {
-                        product.Stock += orderItem.Quantity;
-                    }
-                }
-
-                _context.OrderItems.Remove(orderItem);
-                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
             }
+
+            if (orderItem.Order is not null && orderItem.Order.Status != OrderStatus.Pending)
+            {
+                ModelState.AddModelError(string.Empty, "Solo se pueden eliminar productos de órdenes pendientes.");
+                return View("Delete", orderItem);
+            }
+
+            if (orderItem.Product is not null)
+            {
+                orderItem.Product.Stock += orderItem.Quantity;
+            }
+
+            _context.OrderItems.Remove(orderItem);
+            await _context.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
         }

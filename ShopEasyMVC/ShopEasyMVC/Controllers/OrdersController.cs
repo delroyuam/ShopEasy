@@ -110,11 +110,17 @@ namespace ShopEasyMVC.Controllers
             else
             {
                 var previousStatus = order.Status;
-                order.Status = status;
-                await AdjustStockForStatusChangeAsync(order.Id, previousStatus, status);
-                await _context.SaveChangesAsync();
 
-                TempData["StatusMessage"] = $"La orden {order.OrderNumber} cambió a estado «{status.GetDisplayName()}».";
+                if (!await AdjustStockForStatusChangeAsync(order.Id, previousStatus, status))
+                {
+                    TempData["StatusMessage"] = $"No se pudo cambiar la orden {order.OrderNumber}: stock insuficiente para reactivarla.";
+                }
+                else
+                {
+                    order.Status = status;
+                    await _context.SaveChangesAsync();
+                    TempData["StatusMessage"] = $"La orden {order.OrderNumber} cambió a estado «{status.GetDisplayName()}».";
+                }
             }
 
             return RedirectToAction(nameof(Index), new { status = filter });
@@ -234,13 +240,20 @@ namespace ShopEasyMVC.Controllers
 
                     var previousStatus = existingOrder.Status;
 
+                    if (!await AdjustStockForStatusChangeAsync(existingOrder.Id, previousStatus, order.Status))
+                    {
+                        ModelState.AddModelError(string.Empty, "No hay suficiente stock para reactivar esta orden.");
+                        await LoadUsersSelectListAsync(order.UserId);
+                        LoadStatusSelectList(order.Status);
+                        return View(order);
+                    }
+
                     existingOrder.OrderNumber = order.OrderNumber;
                     existingOrder.TotalAmount = order.TotalAmount;
                     existingOrder.Status = order.Status;
                     existingOrder.CreatedAt = order.CreatedAt;
                     existingOrder.UserId = order.UserId;
 
-                    await AdjustStockForStatusChangeAsync(existingOrder.Id, previousStatus, order.Status);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -314,20 +327,25 @@ namespace ShopEasyMVC.Controllers
             return _context.Orders.Any(o => o.Id == id);
         }
 
-        private async Task AdjustStockForStatusChangeAsync(int orderId, OrderStatus previousStatus, OrderStatus newStatus)
+        private async Task<bool> AdjustStockForStatusChangeAsync(int orderId, OrderStatus previousStatus, OrderStatus newStatus)
         {
             var becameCancelled = newStatus == OrderStatus.Cancelled && previousStatus != OrderStatus.Cancelled;
             var leftCancelled = previousStatus == OrderStatus.Cancelled && newStatus != OrderStatus.Cancelled;
 
             if (!becameCancelled && !leftCancelled)
             {
-                return;
+                return true;
             }
 
             var items = await _context.OrderItems
                 .Include(item => item.Product)
                 .Where(item => item.OrderId == orderId)
                 .ToListAsync();
+
+            if (leftCancelled && items.Any(item => item.Product is not null && item.Product.Stock < item.Quantity))
+            {
+                return false;
+            }
 
             foreach (var item in items)
             {
@@ -336,15 +354,10 @@ namespace ShopEasyMVC.Controllers
                     continue;
                 }
 
-                if (becameCancelled)
-                {
-                    item.Product.Stock += item.Quantity;
-                }
-                else
-                {
-                    item.Product.Stock -= item.Quantity;
-                }
+                item.Product.Stock += becameCancelled ? item.Quantity : -item.Quantity;
             }
+
+            return true;
         }
 
         private async Task ValidateOrderAsync(Order order, int? orderIdToExclude = null)
